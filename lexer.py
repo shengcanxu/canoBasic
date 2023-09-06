@@ -16,7 +16,11 @@ KEYWORDS = {
     "if",
     "then",
     "else",
-    "elif"
+    "elif",
+    "while",
+    "for",
+    "to",
+    "step"
 }
 
 class CONSTANT:
@@ -162,7 +166,7 @@ class Lexer:
         id_str = ''
         pos_start = self.pos.copy()
 
-        valid_letters = TT_LETTERS_DIGITS + "_-"
+        valid_letters = TT_LETTERS_DIGITS + "_"
         while self.current_char is not None and self.current_char in valid_letters:
             id_str += self.current_char
             self.advance()

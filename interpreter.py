@@ -253,7 +253,6 @@ class Interpreter:
 
     def visit_IfNode(self, node, context):
         res = RTResult()
-
         for condition, expr in node.cases:
             condition_value = res.register(self.visit(condition, context))
             if res.error: return res
@@ -269,3 +268,46 @@ class Interpreter:
             return res.success(else_value)
 
         return res.success(None)
+
+    def visit_whileNode(self, node, context):
+        res = RTResult()
+        condition = node.condition
+        body_node = node.body_node
+
+        while True:
+            condition_value = res.register(self.visit(condition, context))
+            if res.error: return res
+            if not condition_value.is_true(): break
+
+            body_value = res.register(self.visit(body_node, context))
+            if res.error: return res
+
+        return res.success(body_value)
+
+    def visit_forNode(self, node, context):
+        res = RTResult()
+
+        start_value = res.register(self.visit(node.start_node, context))
+        if res.error: return res
+        end_value = res.register(self.visit(node.end_node, context))
+        if res.error: return res
+        if node.step_node is not None:
+            step_value = res.register(self.visit(node.step_node, context))
+            if res.error: return res
+        else:
+            step_value = Number(1)
+
+        i = start_value.value
+        if step_value.value >= 0:
+            condition = lambda: i < end_value.value
+        else:
+            condition = lambda: i > end_value.value
+
+        while condition():
+            context.symbol_table.set(node.var_name_tok, Number(i))
+            i += step_value.value
+
+            body_value = res.register(self.visit(node.body_node, context))
+            if res.error: return res
+
+        return res.success(body_value)
