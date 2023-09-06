@@ -1,5 +1,6 @@
 from lexer import Lexer
 from basicParser import Parser
+from interpreter import Interpreter
 
 def run(text, filename):
     lexer = Lexer(text, filename)
@@ -8,9 +9,13 @@ def run(text, filename):
 
     # generate AST
     parser = Parser(tokens)
-    res = parser.parse()
+    ast = parser.parse()
 
-    return res.node, res.error
+    # interpreter
+    interpreter = Interpreter()
+    result = interpreter.visit(ast.node)
+
+    return result.value, result.error
 
 
 if __name__ == "__main__":
