@@ -16,9 +16,9 @@ class Context:
 # symbol table
 #######################################
 class SymbolTable:
-    def __init__(self):
+    def __init__(self, parent=None):
         self.symbols = {}
-        self.parent = None
+        self.parent = parent
 
     def get(self, name):
         value = self.symbols.get(name, None)
@@ -59,18 +59,10 @@ class RTResult:
 #######################################
 # VALUE
 #######################################
-
-class Number:
-    def __init__(self, value):
-        self.value = value
+class Value:
+    def __init__(self):
         self.set_pos()
         self.set_context()
-
-    def as_string(self):
-        return f'{self.value}'
-
-    def __repr__(self):
-        return self.as_string()
 
     def set_pos(self, pos_start=None, pos_end=None):
         self.pos_start = pos_start
@@ -81,12 +73,23 @@ class Number:
         self.context = context
         return self
 
-    def is_true(self):
-        return self.value != 0
+class Number(Value):
+    def __init__(self, value):
+        super().__init__()
+        self.value = value
+
+    def as_string(self):
+        return f'{self.value}'
+
+    def __repr__(self):
+        return self.as_string()
 
     def added_to(self, other):
         if isinstance(other, Number):
             return Number(self.value + other.value).set_context(self.context), None
+
+    def is_true(self):
+        return self.value != 0
 
     def subbed_by(self, other):
         if isinstance(other, Number):
@@ -151,6 +154,53 @@ class Number:
         copy.set_pos(self.pos_start, self.pos_end)
         copy.set_context(self.context)
         return copy
+
+class Function(Value):
+    def __init__(self, name, arg_names, body_node):
+        self.name = name or "<anonymous>"
+        self.arg_names = arg_names
+        self.body_node = body_node
+
+    def execute(self, args):
+        res = RTResult()
+        interpreter = Interpreter()
+        new_context = Context(self.name, self.context, self.pos_start)
+        new_context.symbol_table = SymbolTable(new_context.parent.symbol_table)
+
+        if len(args) > len(self.arg_names):
+            return res.failure(RTError(
+                self.pos_start, self.pos_end,
+                f"{len(args) - len(self.arg_names)} too many args passed to {self.name}",
+                self.context
+            ))
+        elif len(args) < len(self.arg_names):
+            return res.failure(RTError(
+                self.pos_start, self.pos_end,
+                f"{len(self.arg_names) - len(args)} too few args passed to {self.name}",
+                self.context
+            ))
+
+        for i in range(len(args)):
+            arg_name = self.arg_names[i]
+            arg_value = args[i]
+            arg_value.set_context(new_context)
+            new_context.symbol_table.set(arg_name, arg_value)
+
+        value = res.register(interpreter.visit(self.body_node, new_context))
+        if res.error: return res
+        return res.success(value)
+
+    def copy(self):
+        copy = Function(self.name, self.arg_names, self.body_node)
+        copy.set_context(self.context)
+        copy.set_pos(self.pos_start, self.pos_end)
+        return copy
+
+    def __repr__(self):
+        return self.as_string()
+
+    def as_string(self):
+        return f"<function {self.name}>"
 
 #######################################
 # INTERPRETER
@@ -311,3 +361,31 @@ class Interpreter:
             if res.error: return res
 
         return res.success(body_value)
+
+    def visit_FunDefNode(self, node, context):
+        res = RTResult()
+        func_name = node.var_name_tok.value if node.var_name_tok else None
+        body_node = node.body_node
+        arg_names = [arg.value for arg in node.arg_name_toks]
+
+        func_value = Function(func_name, arg_names, body_node).set_context(context).set_pos(node.pos_start, node.pos_end)
+        if node.var_name_tok is not None:
+            context.symbol_table.set(func_name, func_value)
+
+        return res.success(func_value)
+
+    def visit_CallNode(self, node, context):
+        res = RTResult()
+        args = []
+
+        value_to_call = res.register(self.visit(node.node_to_call, context))
+        if res.error: return res
+        value_to_call = value_to_call.copy().set_pos(node.pos_start, node.pos_end)
+
+        for arg_node in node.arg_nodes:
+            args.append(res.register(self.visit(arg_node, context)) )
+            if res.error: return res
+
+        return_value = res.register(value_to_call.execute(args))
+        if res.error: return res
+        return res.success(return_value)

@@ -20,7 +20,8 @@ KEYWORDS = {
     "while",
     "for",
     "to",
-    "step"
+    "step",
+    "fun"
 }
 
 class CONSTANT:
@@ -42,6 +43,8 @@ class CONSTANT:
     GT = "TT_GT"
     LTE = "TT_LTE"
     GTE = "TT_GTE"
+    COMMA = "TT_COMMA"
+    ARROW = "TT_ARROW"
     EOF = "TT_EOF"
 
 
@@ -99,8 +102,7 @@ class Lexer:
                 tokens.append(Token(CONSTANT.PLUS, pos_start=self.pos))
                 self.advance()
             elif self.current_char == '-':
-                tokens.append(Token(CONSTANT.MINUS, pos_start=self.pos))
-                self.advance()
+                tokens.append(self.make_minus_or_arrow())
             elif self.current_char == '*':
                 tokens.append(Token(CONSTANT.MUL, pos_start=self.pos))
                 self.advance()
@@ -115,6 +117,9 @@ class Lexer:
                 self.advance()
             elif self.current_char == ')':
                 tokens.append(Token(CONSTANT.RPAREN, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == ',':
+                tokens.append(Token(CONSTANT.COMMA, pos_start=self.pos))
                 self.advance()
             elif self.current_char == '=':
                 tok, error = self.make_equal()
@@ -173,6 +178,16 @@ class Lexer:
 
         tok_type = CONSTANT.KEYWORD if id_str in KEYWORDS else CONSTANT.IDENTIFIER
         return Token(tok_type, id_str, pos_start, self.pos)
+
+    def make_minus_or_arrow(self):
+        tok_type = CONSTANT.MINUS
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == ">":
+            tok_type = CONSTANT.ARROW
+            self.advance()
+        return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
 
     def make_not_equal(self):
         pos_start = self.pos.copy()

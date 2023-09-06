@@ -93,7 +93,7 @@ class IfNode:
             text = f"({text})"
         return text
 
-class whileNode:
+class WhileNode:
     def __init__(self, condition, body_node):
         self.condition = condition
         self.body_node = body_node
@@ -106,7 +106,7 @@ class whileNode:
     def as_string(self):
         return f"(while {self.condition} then {self.body_node})"
 
-class forNode:
+class ForNode:
     def __init__(self, var_name_tok, start_node, end_node, step_node, body_node):
         self.var_name_tok = var_name_tok
         self.start_node = start_node
@@ -122,6 +122,46 @@ class forNode:
     def as_string(self):
         step_text = "" if self.step_node is None else f"step {self.step_node}"
         return f"(for {self.var_name_tok} = {self.start_node} to {self.end_node} {step_text} then {self.body_node})"
+
+class FunDefNode:
+    def __init__(self, var_name_tok, arg_name_toks, body_node):
+        self.var_name_tok = var_name_tok
+        self.arg_name_toks = arg_name_toks
+        self.body_node = body_node
+
+        if self.var_name_tok is not None:
+            self.pos_start = self.var_name_tok.pos_start
+        elif len(self.arg_name_toks) > 0:
+            self.pos_start = self.arg_name_toks[0].pos_start
+        else:
+            self.pos_start = self.body_node.pos_start
+        self.pos_end = self.body_node.pos_end
+
+    def __repr__(self):
+        return self.as_string()
+
+    def as_string(self):
+        name = self.var_name_tok if self.var_name_tok else "unknown"
+        args_text = '(' + ', '.join([arg.as_string() for arg in self.arg_name_toks]) + ')'
+        return f"(fun {name}{args_text}, {self.body_node})"
+
+class CallNode:
+    def __init__(self, node_to_call, arg_nodes):
+        self.node_to_call = node_to_call
+        self.arg_nodes = arg_nodes
+        self.pos_start = self.node_to_call.pos_start
+        if len(self.arg_nodes) > 0:
+            self.pos_end = self.arg_nodes[len(self.arg_nodes) - 1].pos_end
+        else:
+            self.pos_end = self.node_to_call.pos_end
+
+    def __repr__(self):
+        return self.as_string()
+
+    def as_string(self):
+        name = self.var_name_tok if self.var_name_tok else "unknown"
+        args_text = '(' + ', '.join([arg.as_string() for arg in self.arg_nodes]) + ')'
+        return f"(call {name}{args_text})"
 
 ######################################################
 # parser result
@@ -220,13 +260,58 @@ class Parser:
             if res.error: return res
             return res.success(while_expr)
 
+        elif tok.matches(CONSTANT.KEYWORD, "fun"):
+            while_expr = res.register(self.fun_def())
+            if res.error: return res
+            return res.success(while_expr)
+
         return res.failure(InvalidSyntaxError(
             tok.pos_start, tok.pos_end,
-            "Expected int, float, +, -, or ("
+            "Expected int, float, 'if', 'for', 'while', 'fun',  +, -, or ("
         ))
 
     def power(self):
-        return self.bin_op(self.atom, (CONSTANT.POW), self.factor)
+        return self.bin_op(self.call, (CONSTANT.POW), self.factor)
+
+    def call(self):
+        res = ParseResult()
+        atom = res.register(self.atom())
+        if res.error: return res
+
+        if self.current_tok.type == CONSTANT.LPAREN:
+            res.register_advance()
+            self.advance()
+
+            arg_nodes = []
+            if self.current_tok.type == CONSTANT.RPAREN:
+                res.register_advance()
+                self.advance()
+            else:
+                arg_nodes.append(res.register(self.expr()))
+                if res.error:
+                    return res.failure(InvalidSyntaxError(
+                        self.current_tok.pos_start, self.current_tok.pos_end,
+                        "Expected 'var', 'fun' int, float, identifier, '+', '-', or '('"
+                    ))
+
+                while self.current_tok.type == CONSTANT.COMMA:
+                    res.register_advance()
+                    self.advance()
+
+                    arg_nodes.append(res.register(self.expr()))
+                    if res.error: return res
+
+                if self.current_tok.type != CONSTANT.RPAREN:
+                    return res.failure(InvalidSyntaxError(
+                        self.current_tok.pos_start, self.current_tok.pos_end,
+                        "Expected ',' or ')'"
+                    ))
+                res.register_advance()
+                self.advance()
+
+            return res.success(CallNode(atom, arg_nodes))
+
+        return res.success(atom)
 
     def factor(self):
         res = ParseResult()
@@ -404,12 +489,10 @@ class Parser:
                 self.current_tok.pos_start, self.current_tok.pos_end,
                 "condition or expresstion should not be None",
             ))
-        return res.success(whileNode(condition, expr))
+        return res.success(WhileNode(condition, expr))
 
     def for_expr(self):
         res = ParseResult()
-        step_expr = None
-
         if not self.current_tok.matches(CONSTANT.KEYWORD, "for"):
             return res.failure(InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
@@ -463,4 +546,79 @@ class Parser:
         body_node = res.register(self.expr())
         if res.error: return res
 
-        return res.success(forNode(var_name_tok, start_node, end_node, step_node, body_node))
+        return res.success(ForNode(var_name_tok, start_node, end_node, step_node, body_node))
+
+    def fun_def(self):
+        res = ParseResult()
+        if not self.current_tok.matches(CONSTANT.KEYWORD, "fun"):
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "Expected 'fun'"
+            ))
+        res.register_advance()
+        self.advance()
+
+        if self.current_tok.type == CONSTANT.IDENTIFIER:
+            var_name_tok = self.current_tok
+            res.register_advance()
+            self.advance()
+            if self.current_tok.type != CONSTANT.LPAREN:
+                return res.failure(InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "Expected '('"
+                ))
+        else:
+            var_name_tok = None
+            if self.current_tok.type != CONSTANT.LPAREN:
+                return res.failure(InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "Expected identifier or '('"
+                ))
+        res.register_advance()
+        self.advance()
+
+        arg_name_toks = []
+        if self.current_tok.type == CONSTANT.IDENTIFIER:
+            arg_name_toks.append(self.current_tok)
+            res.register_advance()
+            self.advance()
+
+            while self.current_tok.type == CONSTANT.COMMA:
+                res.register_advance()
+                self.advance()
+                if self.current_tok.type != CONSTANT.IDENTIFIER:
+                    return res.failure(InvalidSyntaxError(
+                        self.current_tok.pos_start, self.current_tok.pos_end,
+                        "Expected identifier"
+                    ))
+                arg_name_toks.append(self.current_tok)
+                res.register_advance()
+                self.advance()
+
+            if self.current_tok.type != CONSTANT.RPAREN:
+                return res.failure(InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "Expected ',' or ')'"
+                ))
+
+        else:
+            if self.current_tok.type != CONSTANT.RPAREN:
+                return res.failure(InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "Expected identifier or ')'"
+                ))
+
+        res.register_advance()
+        self.advance()
+
+        if self.current_tok.type != CONSTANT.ARROW:
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "Expected '->'"
+            ))
+        res.register_advance()
+        self.advance()
+
+        body_node = res.register(self.expr())
+        if res.error: return res
+        return res.success(FunDefNode(var_name_tok, arg_name_toks, body_node))
