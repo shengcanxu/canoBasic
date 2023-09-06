@@ -83,5 +83,11 @@ class TestEP4(unittest.TestCase):
             "0"
         )
 
+    def test_parse12(self):
+        self.assertEqual(
+            run_interpreter("not 3 > 5"),  # b>4 => 0
+            "1"
+        )
+
 if __name__ == '__main__':
     unittest.main()

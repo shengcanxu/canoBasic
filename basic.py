@@ -4,6 +4,8 @@ from interpreter import Interpreter, Context, Number, SymbolTable
 
 global_symbol_table = SymbolTable()
 global_symbol_table.set("null", Number(0))
+global_symbol_table.set("true", Number(1))
+global_symbol_table.set("false", Number(0))
 
 def run(text, filename):
     lexer = Lexer(text, filename)

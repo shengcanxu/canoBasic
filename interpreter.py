@@ -216,6 +216,9 @@ class Interpreter:
         error = None
         if node.op_tok.type == CONSTANT.MINUS:
             number, error = number.multed_by(Number(-1))
+        elif node.op_tok.matches(CONSTANT.KEYWORD, "not"):
+            number, error = number.notted()
+
         if error:
             return res.failure(error)
         else:
