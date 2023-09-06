@@ -1,4 +1,4 @@
-from error import IllegalCharError, Position
+from error import IllegalCharError, Position, ExpectedCharError
 import string
 
 ######################################################
@@ -10,7 +10,9 @@ TT_LETTERS_DIGITS = TT_LETTERS + TT_DIGITS
 
 KEYWORDS = {
     "var",
-    "VAR"
+    "and",
+    "or",
+    "not"
 }
 
 class CONSTANT:
@@ -26,6 +28,12 @@ class CONSTANT:
     LPAREN = "TT_LPAREN"
     RPAREN = "TT_RPAREN"
     EQ = "TT_EQ"
+    EE = "TT_EE"
+    NE = "TT_NE"
+    LT = "TT_LT"
+    GT = "TT_GT"
+    LTE = "TT_LTE"
+    GTE = "TT_GTE"
     EOF = "TT_EOF"
 
 
@@ -101,8 +109,21 @@ class Lexer:
                 tokens.append(Token(CONSTANT.RPAREN, pos_start=self.pos))
                 self.advance()
             elif self.current_char == '=':
-                tokens.append(Token(CONSTANT.EQ, pos_start=self.pos))
-                self.advance()
+                tok, error = self.make_equal()
+                if error: return [], error
+                tokens.append(tok)
+            elif self.current_char == '!':
+                tok, error = self.make_not_equal()
+                if error: return [], error
+                tokens.append(tok)
+            elif self.current_char == '<':
+                tok, error = self.make_less_than()
+                if error: return [], error
+                tokens.append(tok)
+            elif self.current_char == '>':
+                tok, error = self.make_great_than()
+                if error: return [], error
+                tokens.append(tok)
             else:
                 # return error
                 pos_start = self.pos.copy()
@@ -144,3 +165,44 @@ class Lexer:
 
         tok_type = CONSTANT.KEYWORD if id_str in KEYWORDS else CONSTANT.IDENTIFIER
         return Token(tok_type, id_str, pos_start, self.pos)
+
+    def make_not_equal(self):
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == '=':
+            self.advance()
+            return Token(CONSTANT.NE, pos_start=pos_start, pos_end=self.pos), None
+        self.advance()
+        return None,  ExpectedCharError(pos_start, self.pos, "'=' (after '!')")
+
+    def make_equal(self):
+        tok_type = CONSTANT.EQ
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == '=':
+            self.advance()
+            tok_type = CONSTANT.EE
+        return Token(tok_type, pos_start=pos_start, pos_end=self.pos), None
+
+    def make_less_than(self):
+        tok_type = CONSTANT.LT
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == '=':
+            self.advance()
+            tok_type = CONSTANT.LTE
+        return Token(tok_type, pos_start=pos_start, pos_end=self.pos), None
+
+    def make_great_than(self):
+        tok_type = CONSTANT.GT
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == '=':
+            self.advance()
+            tok_type = CONSTANT.GTE
+        return Token(tok_type, pos_start=pos_start, pos_end=self.pos), None
+

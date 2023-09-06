@@ -29,7 +29,7 @@ class TestEP2(unittest.TestCase):
     def test_parse3(self):
         self.assertEqual(
             run_parser("1 3 +"),
-            "Invid Syntax: Expected int for float, File <basic>, line 1 column 2"
+            "Invid Syntax: Expected int or float, File <basic>, line 1 column 2"
         )
 
     def test_parse4(self):
@@ -71,7 +71,7 @@ class TestEP2(unittest.TestCase):
     def test_parse10(self):
         self.assertEqual(
             run_parser("1+2)+3"),
-            "Invid Syntax: Expected int for float, File <basic>, line 1 column 3"
+            "Invid Syntax: Expected int or float, File <basic>, line 1 column 3"
         )
 
 if __name__ == '__main__':
