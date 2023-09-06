@@ -12,7 +12,11 @@ KEYWORDS = {
     "var",
     "and",
     "or",
-    "not"
+    "not",
+    "if",
+    "then",
+    "else",
+    "elif"
 }
 
 class CONSTANT:

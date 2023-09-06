@@ -6,7 +6,7 @@ from lexer import Lexer
 from test.share import run_tokenize, run_interpreter, run_parser
 
 
-class TestEP4(unittest.TestCase):
+class TestEP5(unittest.TestCase):
     def test_parse1(self):
         self.assertEqual(
             run_tokenize("3 > 2 and 5 <= 6"),

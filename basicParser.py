@@ -73,6 +73,26 @@ class VarAssignNode:
     def as_string(self):
         return f"({self.var_name_tok}, {CONSTANT.EQ}, {self.value_node})"
 
+class IfNode:
+    def __init__(self, cases, else_case=None):
+        self.cases = cases
+        self.else_case = else_case
+        self.pos_start = self.cases[0][0].pos_start
+        self.pos_end = (self.else_case or self.cases[len(self.cases) - 1][0]).pos_end
+
+    def __repr__(self):
+        return self.as_string()
+
+    def as_string(self):
+        text = ""
+        for case in self.cases:
+            text += f"(if {case[0]} then {case[1]})"
+        if self.else_case is not None:
+            text = f"({text} else {self.else_case}"
+        elif len(self.cases) > 1:
+            text = f"({text})"
+        return text
+
 ######################################################
 # parser result
 ######################################################
@@ -154,6 +174,11 @@ class Parser:
                     self.current_tok.pos_start, self.current_tok.pos_end,
                     "Expected ')'"
                 ))
+
+        elif tok.matches(CONSTANT.KEYWORD, "if"):
+            if_expr = res.register(self.if_expr())
+            if res.error: return res
+            return res.success(if_expr)
 
         return res.failure(InvalidSyntaxError(
             tok.pos_start, tok.pos_end,
@@ -254,3 +279,58 @@ class Parser:
             left = BinOpNode(left, op_tok, right)
         return res.success(left)
 
+    def if_expr(self):
+        res = ParseResult()
+        cases = []
+        else_case = None
+
+        if not self.current_tok.matches(CONSTANT.KEYWORD, "if"):
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "Expected 'if'"
+            ))
+        res.register_advance()
+        self.advance()
+
+        condition = res.register(self.expr())
+        if res.error: return res
+
+        if not self.current_tok.matches(CONSTANT.KEYWORD, "then"):
+            return  res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "Expected 'then'"
+            ))
+        res.register_advance()
+        self.advance()
+
+        expr = res.register(self.expr())
+        if res.error: return res
+        cases.append((condition, expr))
+
+        # matching many elif
+        while self.current_tok.matches(CONSTANT.KEYWORD, "elif"):
+            res.register_advance()
+            self.advance()
+
+            condition = res.register(self.expr())
+            if res.error: return res
+
+            if not self.current_tok.matches(CONSTANT.KEYWORD, "then"):
+                return  res.failure(InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "Expected 'then'"
+                ))
+            res.register_advance()
+            self.advance()
+
+            expr = res.register(self.expr())
+            if res.error: return res
+            cases.append((condition, expr))
+
+        if self.current_tok.matches(CONSTANT.KEYWORD, "else"):
+            res.register_advance()
+            self.advance()
+            else_case = res.register(self.expr())
+            if res.error: return res
+
+        return res.success(IfNode(cases, else_case))

@@ -81,6 +81,9 @@ class Number:
         self.context = context
         return self
 
+    def is_true(self):
+        return self.value != 0
+
     def added_to(self, other):
         if isinstance(other, Number):
             return Number(self.value + other.value).set_context(self.context), None
@@ -232,7 +235,8 @@ class Interpreter:
         if not value:
             return res.failure(RTError(
                 node.pos_start, node.pos_end,
-                f"'{var_name}' is not defined"
+                f"'{var_name}' is not defined",
+                context
             ))
 
         value = value.copy().set_pos(node.pos_start, node.pos_end)
@@ -246,3 +250,22 @@ class Interpreter:
 
         context.symbol_table.set(var_name, value)
         return res.success(value)
+
+    def visit_IfNode(self, node, context):
+        res = RTResult()
+
+        for condition, expr in node.cases:
+            condition_value = res.register(self.visit(condition, context))
+            if res.error: return res
+
+            if condition_value.is_true():
+                expr_value = res.register(self.visit(expr, context))
+                if res.error: return res
+                return res.success(expr_value)
+
+        if node.else_case is not None:
+            else_value = res.register(self.visit(node.else_case, context))
+            if res.error: return res
+            return res.success(else_value)
+
+        return res.success(None)
