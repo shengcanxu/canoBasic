@@ -12,6 +12,7 @@ class CONSTANT:
     MINUS = "TT_MINUS"
     MUL = "TT_MUL"
     DIV = "TT_DIV"
+    POW = "TT_POW"
     LPAREN = "TT_LPAREN"
     RPAREN = "TT_RPAREN"
     EOF = "TT_EOF"
@@ -73,6 +74,9 @@ class Lexer:
                 self.advance()
             elif self.current_char == '/':
                 tokens.append(Token(CONSTANT.DIV, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == '^':
+                tokens.append(Token(CONSTANT.POW, pos_start=self.pos))
                 self.advance()
             elif self.current_char == '(':
                 tokens.append(Token(CONSTANT.LPAREN, pos_start=self.pos))

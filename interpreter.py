@@ -1,5 +1,6 @@
 from error import RTError
 from lexer import CONSTANT
+import math
 
 #######################################
 # context
@@ -83,6 +84,10 @@ class Number:
             else:
                 return Number(self.value / other.value).set_context(self.context), None
 
+    def powed_by(self, other):
+        if isinstance(other, Number):
+            return Number(math.pow(self.value, other.value)).set_context(self.context), None
+
 #######################################
 # INTERPRETER
 #######################################
@@ -118,6 +123,8 @@ class Interpreter:
             result, error = left.multed_by(right)
         elif node.op_tok.type == CONSTANT.DIV:
             result, error = left.dived_by(right)
+        elif node.op_tok.type == CONSTANT.POW:
+            result, error = left.powed_by(right)
 
         if error:
             return res.failure(error)
