@@ -8,7 +8,6 @@ class Error:
     def as_string(self):
         result = f'{self.error_name}: {self.details}'
         result += f', File {self.pos_start.filename}, line {self.pos_start.ln+1} column {self.pos_start.col}'
-        result += f''
         return result
 
 class IllegalCharError(Error):
@@ -20,8 +19,26 @@ class InvalidSyntaxError(Error):
         super().__init__(pos_start, pos_end, "Invid Syntax", details)
 
 class RTError(Error):
-    def __init__(self, pos_start, pos_end, details=""):
+    def __init__(self, pos_start, pos_end, details, context):
         super().__init__(pos_start, pos_end, "Runtime Error", details)
+        self.context = context
+
+    def as_string(self):
+        result = self.generate_traceback()
+        result += f'{self.error_name}: {self.details}'
+        result += f', File {self.pos_start.filename}, line {self.pos_start.ln+1} column {self.pos_start.col}'
+        return result
+
+    def generate_traceback(self):
+        result = ""
+        pos = self.pos_start
+        ctx = self.context
+
+        while ctx:
+            result = f' File {pos.filename}, line {str(pos.ln+1)}, in {ctx.display_name}\n'
+            pos = ctx.parent_entry_pos
+            ctx = ctx.parent
+        return 'Traceback: \n' + result
 
 class Position:
     def __init__(self, idx, ln, col, filename=None, text=None):

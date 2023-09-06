@@ -2,6 +2,16 @@ from error import RTError
 from lexer import CONSTANT
 
 #######################################
+# context
+#######################################
+class Context:
+    def __init__(self, display_name, parent=None, parent_entry_pos=None):
+        self.display_name = display_name
+        self.parent = parent
+        self.parent_entry_pos = parent_entry_pos
+
+
+#######################################
 # runtime result
 #######################################
 
@@ -33,6 +43,7 @@ class Number:
     def __init__(self, value):
         self.value = value
         self.set_pos()
+        self.set_context()
 
     def as_string(self):
         return f'{self.value}'
@@ -45,27 +56,32 @@ class Number:
         self.pos_end = pos_end
         return self
 
+    def set_context(self, context=None):
+        self.context = context
+        return self
+
     def added_to(self, other):
         if isinstance(other, Number):
-            return Number(self.value + other.value), None
+            return Number(self.value + other.value).set_context(self.context), None
 
     def subbed_by(self, other):
         if isinstance(other, Number):
-            return Number(self.value - other.value), None
+            return Number(self.value - other.value).set_context(self.context), None
 
     def multed_by(self, other):
         if isinstance(other, Number):
-            return Number(self.value * other.value), None
+            return Number(self.value * other.value).set_context(self.context), None
 
     def dived_by(self, other):
         if isinstance(other, Number):
             if other.value == 0:
                 return None, RTError(
                     other.pos_start, other.pos_end,
-                    "Division by zero"
+                    "Division by zero",
+                    self.context
                 )
             else:
-                return Number(self.value / other.value), None
+                return Number(self.value / other.value).set_context(self.context), None
 
 #######################################
 # INTERPRETER
@@ -74,24 +90,24 @@ class Interpreter:
     def __init__(self):
         pass
 
-    def visit(self, node):
+    def visit(self, node, context):
         method_name = f'visit_{type(node).__name__}'
         method = getattr(self, method_name, self.no_visit_method)
-        return method(node)
+        return method(node, context)
 
-    def no_visit_method(self, node):
+    def no_visit_method(self, node, context):
         raise Exception(f"No visit_{type(node).__name__} method defined")
 
-    def visit_NumberNode(self, node):
+    def visit_NumberNode(self, node, context):
         return RTResult().success(
-            Number(node.tok.value).set_pos(node.pos_start, node.pos_end)
+            Number(node.tok.value).set_pos(node.pos_start, node.pos_end).set_context(context)
         )
 
-    def visit_BinOpNode(self, node):
+    def visit_BinOpNode(self, node, context):
         res = RTResult()
-        left = res.register(self.visit(node.left_node))
+        left = res.register(self.visit(node.left_node, context))
         if res.error: return res
-        right = res.register(self.visit(node.right_node))
+        right = res.register(self.visit(node.right_node, context))
         if res.error: return res
 
         if node.op_tok.type == CONSTANT.PLUS:
@@ -108,9 +124,9 @@ class Interpreter:
         else:
             return res.success(result.set_pos(node.pos_start, node.pos_end))
 
-    def visit_UnaryOpNode(self, node):
+    def visit_UnaryOpNode(self, node, context):
         res = RTResult()
-        number = res.register(self.visit(node.node))
+        number = res.register(self.visit(node.node, context))
         if res.error: return res
 
         error = None

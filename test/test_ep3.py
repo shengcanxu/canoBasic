@@ -1,7 +1,7 @@
 import unittest
 
 from basicParser import Parser
-from interpreter import Interpreter
+from interpreter import Interpreter, Context
 from lexer import Lexer
 
 class TestInterpreter(unittest.TestCase):
@@ -14,7 +14,8 @@ class TestInterpreter(unittest.TestCase):
         ast = parser.parse()
 
         interpreter = Interpreter()
-        res = interpreter.visit(ast.node)
+        context = Context("<Program>")
+        res = interpreter.visit(ast.node, context)
         return res.error.as_string() if res.error else res.value.as_string()
 
     def test_parse1(self):
@@ -62,6 +63,8 @@ class TestInterpreter(unittest.TestCase):
     def test_parse10(self):
         self.assertEqual(
             self.run_interpreter("10/0"),
+            "Traceback: \n" +
+            " File <basic>, line 1, in <Program>\n" +
             "Runtime Error: Division by zero, File <basic>, line 1 column 3"
         )
 

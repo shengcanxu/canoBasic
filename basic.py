@@ -1,6 +1,7 @@
 from lexer import Lexer
 from basicParser import Parser
-from interpreter import Interpreter
+from interpreter import Interpreter, Context
+
 
 def run(text, filename):
     lexer = Lexer(text, filename)
@@ -13,7 +14,8 @@ def run(text, filename):
 
     # interpreter
     interpreter = Interpreter()
-    result = interpreter.visit(ast.node)
+    context = Context("<pragram>")
+    result = interpreter.visit(ast.node, context)
 
     return result.value, result.error
 
