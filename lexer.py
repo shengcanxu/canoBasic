@@ -1,11 +1,21 @@
 from error import IllegalCharError, Position
+import string
 
 ######################################################
 # tokens
 ######################################################
 TT_DIGITS = "0123456789"
+TT_LETTERS = string.ascii_letters
+TT_LETTERS_DIGITS = TT_LETTERS + TT_DIGITS
+
+KEYWORDS = {
+    "var",
+    "VAR"
+}
 
 class CONSTANT:
+    IDENTIFIER = "TT_IDENTIFIER"
+    KEYWORD = "TT_KEYWORD"
     INT = "TT_INT"
     FLOAT = "TT_FLOAT"
     PLUS = "TT_PLUS"
@@ -15,6 +25,7 @@ class CONSTANT:
     POW = "TT_POW"
     LPAREN = "TT_LPAREN"
     RPAREN = "TT_RPAREN"
+    EQ = "TT_EQ"
     EOF = "TT_EOF"
 
 
@@ -30,6 +41,9 @@ class Token:
             self.pos_end.advance()
         if pos_end:
             self.pos_end = pos_end.copy()
+
+    def matches(self, type_, value):
+        return self.type == type_ and self.value == value
 
     def __repr__(self):
         return self.as_string()
@@ -63,6 +77,8 @@ class Lexer:
                 self.advance()
             elif self.current_char in TT_DIGITS:
                 tokens.append(self.make_numbers())
+            elif self.current_char in TT_LETTERS:
+                tokens.append(self.make_identify())
             elif self.current_char == '+':
                 tokens.append(Token(CONSTANT.PLUS, pos_start=self.pos))
                 self.advance()
@@ -84,8 +100,8 @@ class Lexer:
             elif self.current_char == ')':
                 tokens.append(Token(CONSTANT.RPAREN, pos_start=self.pos))
                 self.advance()
-            elif self.current_char == '+':
-                tokens.append(Token(CONSTANT.PLUS, pos_start=self.pos))
+            elif self.current_char == '=':
+                tokens.append(Token(CONSTANT.EQ, pos_start=self.pos))
                 self.advance()
             else:
                 # return error
@@ -117,4 +133,14 @@ class Lexer:
         else:
             return Token(CONSTANT.FLOAT, float(num_str), pos_start, self.pos)
 
+    def make_identify(self):
+        id_str = ''
+        pos_start = self.pos.copy()
 
+        valid_letters = TT_LETTERS_DIGITS + "_-"
+        while self.current_char is not None and self.current_char in valid_letters:
+            id_str += self.current_char
+            self.advance()
+
+        tok_type = CONSTANT.KEYWORD if id_str in KEYWORDS else CONSTANT.IDENTIFIER
+        return Token(tok_type, id_str, pos_start, self.pos)

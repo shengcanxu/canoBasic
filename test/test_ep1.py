@@ -2,7 +2,7 @@ import unittest
 from lexer import Lexer
 from test.share import run_tokenize, run_interpreter, run_parser
 
-class TestParseToken(unittest.TestCase):
+class TestEP1(unittest.TestCase):
     def run_tokenize(self, text, filename="<basic>"):
         lexer = Lexer(text, filename)
         tokens, error = lexer.make_tokens()
@@ -39,8 +39,8 @@ class TestParseToken(unittest.TestCase):
 
     def test_parse_token5(self):
         self.assertEqual(
-            run_tokenize("a"),
-            "Illegal Character: 'a', File <basic>, line 1 column 0"
+            run_tokenize("a%%"),
+            "Illegal Character: '%', File <basic>, line 1 column 1"
         )
 
 if __name__ == '__main__':

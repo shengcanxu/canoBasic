@@ -1,7 +1,9 @@
 from lexer import Lexer
 from basicParser import Parser
-from interpreter import Interpreter, Context
+from interpreter import Interpreter, Context, Number, SymbolTable
 
+global_symbol_table = SymbolTable()
+global_symbol_table.set("null", Number(0))
 
 def run(text, filename):
     lexer = Lexer(text, filename)
@@ -11,10 +13,12 @@ def run(text, filename):
     # generate AST
     parser = Parser(tokens)
     ast = parser.parse()
+    if ast.error: return ast.node, ast.error
 
     # interpreter
     interpreter = Interpreter()
     context = Context("<pragram>")
+    context.symbol_table = global_symbol_table
     result = interpreter.visit(ast.node, context)
 
     return result.value, result.error

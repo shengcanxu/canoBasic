@@ -5,7 +5,7 @@ from interpreter import Interpreter, Context
 from lexer import Lexer
 from test.share import run_tokenize, run_interpreter, run_parser
 
-class TestInterpreter(unittest.TestCase):
+class TestEP3(unittest.TestCase):
     def run_interpreter(self, text, filename="<basic>"):
         lexer = Lexer(text, filename)
         tokens, error = lexer.make_tokens()
