@@ -319,7 +319,7 @@ class Interpreter:
 
         return res.success(None)
 
-    def visit_whileNode(self, node, context):
+    def visit_WhileNode(self, node, context):
         res = RTResult()
         condition = node.condition
         body_node = node.body_node
@@ -334,7 +334,7 @@ class Interpreter:
 
         return res.success(body_value)
 
-    def visit_forNode(self, node, context):
+    def visit_ForNode(self, node, context):
         res = RTResult()
 
         start_value = res.register(self.visit(node.start_node, context))

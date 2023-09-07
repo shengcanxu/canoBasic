@@ -72,7 +72,7 @@ class TestEP4(unittest.TestCase):
     def test_parse11(self):
         self.assertEqual(
             run_interpreter("5 + var a = 3"),
-            "Invid Syntax: Expected int, float, +, -, or (, File <basic>, line 1 column 4"
+            "Invid Syntax: Expected int, float, 'if', 'for', 'while', 'fun',  +, -, or (, File <basic>, line 1 column 4"
         )
 
 if __name__ == '__main__':

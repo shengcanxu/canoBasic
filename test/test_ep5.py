@@ -12,17 +12,26 @@ class TestEP5(unittest.TestCase):
             run_tokenize("3 > 2 and 5 <= 6"),
             "[TT_INT:3, TT_GT, TT_INT:2, TT_KEYWORD:and, TT_INT:5, TT_LTE, TT_INT:6, TT_EOF]"
         )
-
-    def test_parse2(self):
         self.assertEqual(
             run_parser("3 > 2 and 5 <= 6"),
             "((TT_INT:3, TT_GT, TT_INT:2), TT_KEYWORD:and, (TT_INT:5, TT_LTE, TT_INT:6))"
         )
 
-    def test_parse3(self):
+    def test_parse2(self):
         self.assertEqual(
             run_parser("3 ! 6"),
             "Expected Character: : '=' (after '!'), File <basic>, line 1 column 2"
+        )
+
+    def test_parse3(self):
+        run_interpreter("(var a = 8) and (var b = 7)")
+        self.assertEqual(
+            run_interpreter("a"),
+            "8"
+        )
+        self.assertEqual(
+            run_interpreter("b"),
+            "7"
         )
 
     def test_pars4(self):
