@@ -27,6 +27,7 @@ KEYWORDS = {
 class CONSTANT:
     IDENTIFIER = "TT_IDENTIFIER"
     KEYWORD = "TT_KEYWORD"
+    STRING = "TT_STRING"
     INT = "TT_INT"
     FLOAT = "TT_FLOAT"
     PLUS = "TT_PLUS"
@@ -98,6 +99,8 @@ class Lexer:
                 tokens.append(self.make_numbers())
             elif self.current_char in TT_LETTERS:
                 tokens.append(self.make_identify())
+            elif self.current_char == '"':
+                tokens.append(self.make_strings())
             elif self.current_char == '+':
                 tokens.append(Token(CONSTANT.PLUS, pos_start=self.pos))
                 self.advance()
@@ -178,6 +181,30 @@ class Lexer:
 
         tok_type = CONSTANT.KEYWORD if id_str in KEYWORDS else CONSTANT.IDENTIFIER
         return Token(tok_type, id_str, pos_start, self.pos)
+
+    def make_strings(self):
+        string = ''
+        pos_start = self.pos.copy()
+        escape_character = False
+        self.advance()
+
+        escape_characters = {
+            'n': '\n',
+            't': '\t'
+        }
+        while self.current_char is not None and (self.current_char != '"' or escape_character):
+            if escape_character:
+                string += escape_characters.get(self.current_char, self.current_char)
+            else:
+                if self.current_char == "\\":
+                    escape_character = True
+                else:
+                    string += self.current_char
+            self.advance()
+            escape_character = False
+
+        self.advance()
+        return Token(CONSTANT.STRING, string, pos_start, self.pos)
 
     def make_minus_or_arrow(self):
         tok_type = CONSTANT.MINUS

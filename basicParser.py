@@ -19,6 +19,18 @@ class NumberNode:
     def as_string(self):
         return f'{self.tok}'
 
+class StringNode:
+    def __init__(self, tok):
+        self.tok = tok
+        self.pos_start = self.tok.pos_start
+        self.pos_end = self.tok.pos_end
+
+    def __repr__(self):
+        return self.as_string()
+
+    def as_string(self):
+        return f'{self.tok}'
+
 class BinOpNode:
     def __init__(self, left_node, op_tok, right_node):
         self.left_node = left_node
@@ -224,6 +236,11 @@ class Parser:
             res.register_advance()
             self.advance()
             return res.success(NumberNode(tok))
+
+        elif tok.type == CONSTANT.STRING:
+            res.register_advance()
+            self.advance()
+            return res.success(StringNode(tok))
 
         elif tok.type == CONSTANT.IDENTIFIER:
             res.register_advance()
