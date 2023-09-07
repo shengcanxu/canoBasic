@@ -66,7 +66,7 @@ class TestEP4(unittest.TestCase):
     def test_parse10(self):
         self.assertEqual(
             run_interpreter("var a = var b * 3"),
-            "Invid Syntax: expected ‘=’ , File <basic>, line 1 column 14"
+            "Invid Syntax: expected ‘=’, File <basic>, line 1 column 14"
         )
 
     def test_parse11(self):

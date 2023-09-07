@@ -20,7 +20,15 @@ def run_parser(text, filename="<basic>"):
 
     parser = Parser(tokens)
     res = parser.parse()
-    return res.error.as_string() if res.error else res.node.as_string()
+
+    if res.error:
+        return res.error.as_string()
+    elif res.node:
+        if len(res.node.element_nodes) == 1:
+            return res.node.element_nodes[0].as_string()
+        else:
+            return res.node.as_string()
+    # return res.error.as_string() if res.error else res.node.as_string()
 
 global_symbol_table = SymbolTable()
 global_symbol_table.set("null", Number.null)
@@ -54,4 +62,11 @@ def run_interpreter(text, filename="<basic>"):
     context = Context("<Program>")
     context.symbol_table = global_symbol_table
     res = interpreter.visit(ast.node, context)
-    return res.error.as_string() if res.error else res.value.as_string()
+
+    if res.error:
+        return res.error.as_string()
+    elif res.value:
+        if len(res.value.elements) == 1:
+            return res.value.elements[0].as_string()
+        else:
+            return res.value.as_string()

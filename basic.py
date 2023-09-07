@@ -47,5 +47,8 @@ if __name__ == "__main__":
 
         if error:
             print(error.as_string())
-        else:
-            print(result)
+        elif result:
+            if len(result.elements) == 1:
+                print(result.elements[0])
+            else:
+                print(result)

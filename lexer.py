@@ -21,7 +21,8 @@ KEYWORDS = {
     "for",
     "to",
     "step",
-    "fun"
+    "fun",
+    "end"
 }
 
 class CONSTANT:
@@ -48,6 +49,7 @@ class CONSTANT:
     GTE = "TT_GTE"
     COMMA = "TT_COMMA"
     ARROW = "TT_ARROW"
+    NEWLINE = "TT_NEWLINE"
     EOF = "TT_EOF"
 
 
@@ -96,6 +98,9 @@ class Lexer:
 
         while self.current_char is not None:
             if self.current_char in ' \t':
+                self.advance()
+            elif self.current_char in ';\n':
+                tokens.append(Token(CONSTANT.NEWLINE, pos_start=self.pos))
                 self.advance()
             elif self.current_char in TT_DIGITS:
                 tokens.append(self.make_numbers())
