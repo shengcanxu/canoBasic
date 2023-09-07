@@ -37,6 +37,8 @@ class CONSTANT:
     POW = "TT_POW"
     LPAREN = "TT_LPAREN"
     RPAREN = "TT_RPAREN"
+    LSQUARE = "TT_LSQUARE"
+    RSQUARE = "TT_RSQUARE"
     EQ = "TT_EQ"
     EE = "TT_EE"
     NE = "TT_NE"
@@ -120,6 +122,12 @@ class Lexer:
                 self.advance()
             elif self.current_char == ')':
                 tokens.append(Token(CONSTANT.RPAREN, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == '[':
+                tokens.append(Token(CONSTANT.LSQUARE, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == ']':
+                tokens.append(Token(CONSTANT.RSQUARE, pos_start=self.pos))
                 self.advance()
             elif self.current_char == ',':
                 tokens.append(Token(CONSTANT.COMMA, pos_start=self.pos))

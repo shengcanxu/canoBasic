@@ -219,6 +219,61 @@ class String(Value):
         copy.set_context(self.context)
         return copy
 
+class List(Value):
+    def __init__(self, elements):
+        super().__init__()
+        self.elements = elements
+
+    def __repr__(self):
+        return self.as_string()
+
+    def as_string(self):
+        elem_strs = [elem.as_string() for elem in self.elements]
+        return f"[{','.join(elem_strs)}]"
+
+    def added_to(self, other):
+        new_list = self.copy()
+        new_list.elements.append(other)
+        return new_list, None
+
+    def subbed_by(self, other):
+        if isinstance(other, Number):
+            new_list = self.copy()
+            try:
+                new_list.elements.pop(other.value)
+                return new_list, None
+            except:
+                return None, RTError(
+                    other.pos_start, other.pos_end,
+                    "retrieve fails because index is not in the list",
+                    self.context
+                )
+        else:
+            return None, Value.illegal_operation(self, other)
+
+    def multed_by(self, other):
+        if isinstance(other, List):
+            new_list = self.copy()
+            new_list.elements.extend(other.elements)
+            return new_list, None
+        else:
+            return None, Value.illegal_operation(self, other)
+
+    def dived_by(self, other):
+        if isinstance(other, Number):
+            try:
+                return self.elements[other.value], None
+            except:
+                return None, RTError(other.pos_start, other.pos_end, "remove fails because index is not in the list", self.context)
+        else:
+            return None, Value.illegal_operation(self, other)
+
+    def copy(self):
+        copy = List(self.elements)
+        copy.set_pos(self.pos_start, self.pos_end)
+        copy.set_context(self.context)
+        return copy
+
 class Function(Value):
     def __init__(self, name, arg_names, body_node):
         self.name = name or "<anonymous>"
@@ -390,21 +445,23 @@ class Interpreter:
 
     def visit_WhileNode(self, node, context):
         res = RTResult()
-        condition = node.condition
-        body_node = node.body_node
+        elements = []
 
         while True:
-            condition_value = res.register(self.visit(condition, context))
+            condition_value = res.register(self.visit(node.condition, context))
             if res.error: return res
             if not condition_value.is_true(): break
 
-            body_value = res.register(self.visit(body_node, context))
+            elements.append(res.register(self.visit(node.body_node, context)))
             if res.error: return res
 
-        return res.success(body_value)
+        return res.success(
+            List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+        )
 
     def visit_ForNode(self, node, context):
         res = RTResult()
+        elements = []
 
         start_value = res.register(self.visit(node.start_node, context))
         if res.error: return res
@@ -423,13 +480,15 @@ class Interpreter:
             condition = lambda: i > end_value.value
 
         while condition():
-            context.symbol_table.set(node.var_name_tok, Number(i))
+            context.symbol_table.set(node.var_name_tok.value, Number(i))
             i += step_value.value
 
-            body_value = res.register(self.visit(node.body_node, context))
+            elements.append(res.register(self.visit(node.body_node, context)))
             if res.error: return res
 
-        return res.success(body_value)
+        return res.success(
+            List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+        )
 
     def visit_FunDefNode(self, node, context):
         res = RTResult()
@@ -459,3 +518,14 @@ class Interpreter:
         if res.error: return res
         return res.success(return_value)
 
+    def visit_ListNode(self, node, context):
+        res = RTResult()
+        elements = []
+
+        for element in node.element_nodes:
+            elements.append(res.register(self.visit(element, context)))
+            if res.error: return res
+
+        return res.success(
+            List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+        )

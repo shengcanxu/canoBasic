@@ -175,6 +175,18 @@ class CallNode:
         args_text = '(' + ', '.join([arg.as_string() for arg in self.arg_nodes]) + ')'
         return f"(call {name}{args_text})"
 
+class ListNode:
+    def __init__(self, element_nodes, pos_start, pos_end):
+        self.element_nodes = element_nodes
+        self.pos_start = pos_start
+        self.pos_end = pos_end
+
+    def __repr__(self):
+        return self.as_string()
+
+    def as_string(self):
+        return f"[{','.join([item.as_string() for item in self.element_nodes])}]"
+
 ######################################################
 # parser result
 ######################################################
@@ -261,6 +273,11 @@ class Parser:
                     self.current_tok.pos_start, self.current_tok.pos_end,
                     "Expected ')'"
                 ))
+
+        elif tok.type == CONSTANT.LSQUARE:
+            list_expr = res.register(self.list_expr())
+            if res.error: return res
+            return res.success(list_expr)
 
         elif tok.matches(CONSTANT.KEYWORD, "if"):
             if_expr = res.register(self.if_expr())
@@ -363,7 +380,7 @@ class Parser:
         if res.error:
             return res.failure(InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                "Expected int, float, +, -, ( or 'not'"
+                "Expected int, float, '+', '-', '[', '(' or 'not'"
             ))
         return res.success(node)
 
@@ -400,7 +417,7 @@ class Parser:
         if res.error:
             return res.failure(InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                "Expected 'VAR', int, float, identifier, '+', '-', or '('"
+                "Expected 'VAR', int, float, fun, for, while, identifier, '+', '-', '[' or '('"
             ))
         return res.success(node)
 
@@ -639,3 +656,45 @@ class Parser:
         body_node = res.register(self.expr())
         if res.error: return res
         return res.success(FunDefNode(var_name_tok, arg_name_toks, body_node))
+
+    def list_expr(self):
+        res = ParseResult()
+        element_nodes = []
+        pos_start = self.current_tok.pos_start.copy()
+
+        if self.current_tok.type != CONSTANT.LSQUARE:
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "Expected '['"
+            ))
+        res.register_advance()
+        self.advance()
+
+        if self.current_tok.type == CONSTANT.RSQUARE:
+            res.register_advance()
+            self.advance()
+        else:
+            element_nodes.append(res.register(self.expr()))
+            if res.error:
+                return res.failure(InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "Expected 'var', 'fun' int, float, while, for, fun identifier, '+', '-', '(' or '['"
+                ))
+
+            while self.current_tok.type == CONSTANT.COMMA:
+                res.register_advance()
+                self.advance()
+
+                element_nodes.append(res.register(self.expr()))
+                if res.error: return res
+
+            if self.current_tok.type != CONSTANT.RSQUARE:
+                return res.failure(InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "Expected ',' or ']'"
+                ))
+            res.register_advance()
+            self.advance()
+
+        return res.success(
+            ListNode( element_nodes, pos_start, self.current_tok.pos_end ))

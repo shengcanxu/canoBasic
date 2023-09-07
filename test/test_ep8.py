@@ -105,7 +105,7 @@ class TestEP8(unittest.TestCase):
         )
         self.assertEqual(
             run_parser("fun test(a, b) -> "),
-            "Invid Syntax: Expected 'VAR', int, float, identifier, '+', '-', or '(', File <basic>, line 1 column 18"
+            "Invid Syntax: Expected 'VAR', int, float, fun, for, while, identifier, '+', '-', '[' or '(', File <basic>, line 1 column 18"
         )
 
 if __name__ == '__main__':
