@@ -1,7 +1,27 @@
+# from basic import global_symbol_table
+from basicParser import Parser
 from error import RTError
-from lexer import CONSTANT
+from lexer import CONSTANT, Lexer
 import math
 import os
+
+def run_script(text, filename):
+    lexer = Lexer(text, filename)
+    tokens, error = lexer.make_tokens()
+    if error: return None, error
+
+    # generate AST
+    parser = Parser(tokens)
+    ast = parser.parse()
+    if ast.error: return ast.node, ast.error
+
+    # interpreter
+    interpreter = Interpreter()
+    context = Context("<pragram>")
+    context.symbol_table = global_symbol_table
+    result = interpreter.visit(ast.node, context)
+
+    return result.value, result.error
 
 #######################################
 # context
@@ -33,6 +53,7 @@ class SymbolTable:
     def remove(self, name):
         del self.symbols[name]
 
+global_symbol_table = SymbolTable()
 #######################################
 # runtime result
 #######################################
@@ -532,6 +553,47 @@ class BuiltInFunction(BaseFunction):
         return res.success(Number.null)
     execute_extend.arg_names = ['listA', 'listB']
 
+    def execute_len(self, exec_ctx):
+        list_ = exec_ctx.symbol_table.get("list")
+        if not isinstance(list_, List):
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "Augument must be list",
+                exec_ctx
+            ))
+        return RTResult().success(Number(len(list_.elements)))
+    execute_len.arg_names = ['list']
+
+    def execute_run(self, exec_ctx):
+        filename = exec_ctx.symbol_table.get("filename")
+        if not isinstance(filename, String):
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "Argument must be string",
+                exec_ctx
+            ))
+        filename = filename.value
+
+        try:
+            with open(filename, "r") as f:
+                script = f.read()
+        except Exception as e:
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                f"Failed to load script '{filename}'\n" + str(e),
+                exec_ctx
+            ))
+
+        return_value, error = run_script(script, filename)
+        if error:
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                f"Failed to finish executing script '{filename}'\n" + error.as_string(),
+                exec_ctx
+            ))
+        return RTResult().success(return_value)
+    execute_run.arg_names = ['filename']
+
 BuiltInFunction.print = BuiltInFunction("print")
 BuiltInFunction.print_ret = BuiltInFunction("print_ret")
 BuiltInFunction.input = BuiltInFunction("input")
@@ -544,6 +606,8 @@ BuiltInFunction.is_function = BuiltInFunction("is_function")
 BuiltInFunction.append = BuiltInFunction("append")
 BuiltInFunction.pop = BuiltInFunction("pop")
 BuiltInFunction.extend = BuiltInFunction("extend")
+BuiltInFunction.len = BuiltInFunction("len")
+BuiltInFunction.run = BuiltInFunction("run")
 
 #######################################
 # INTERPRETER
