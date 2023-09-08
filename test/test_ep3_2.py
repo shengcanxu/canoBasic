@@ -16,7 +16,7 @@ class TestEP3_2(unittest.TestCase):
     def test_parse2(self):
         self.assertEqual(
             run_parser("2 ^ -"),
-            "Invid Syntax: Expected int, float, 'if', 'for', 'while', 'fun',  +, -, or (, File <basic>, line 1 column 5"
+            "Invalid Syntax: Expected int, float, 'if', 'for', 'while', 'fun',  +, -, or (, File <basic>, line 1 column 5"
         )
 
     def test_parse3(self):

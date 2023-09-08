@@ -66,13 +66,13 @@ class TestEP4(unittest.TestCase):
     def test_parse10(self):
         self.assertEqual(
             run_interpreter("var a = var b * 3"),
-            "Invid Syntax: expected ‘=’, File <basic>, line 1 column 14"
+            "Invalid Syntax: expected ‘=’, File <basic>, line 1 column 14"
         )
 
     def test_parse11(self):
         self.assertEqual(
             run_interpreter("5 + var a = 3"),
-            "Invid Syntax: Expected int, float, 'if', 'for', 'while', 'fun',  +, -, or (, File <basic>, line 1 column 4"
+            "Invalid Syntax: Expected int, float, 'if', 'for', 'while', 'fun',  +, -, or (, File <basic>, line 1 column 4"
         )
 
 if __name__ == '__main__':

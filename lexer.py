@@ -22,7 +22,10 @@ KEYWORDS = {
     "to",
     "step",
     "fun",
-    "end"
+    "end",
+    "return",
+    "continue",
+    "break"
 }
 
 class CONSTANT:

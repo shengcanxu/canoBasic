@@ -67,15 +67,15 @@ class TestEP6(unittest.TestCase):
     def test_parse8(self):
         self.assertEqual(
             run_interpreter("if 3 > 5"),
-            "Invid Syntax: Expected 'then', File <basic>, line 1 column 8"
+            "Invalid Syntax: Expected 'then', File <basic>, line 1 column 8"
         )
         self.assertEqual(
             run_interpreter("if 3 > 5 else 8"),
-            "Invid Syntax: Expected 'then', File <basic>, line 1 column 9"
+            "Invalid Syntax: Expected 'then', File <basic>, line 1 column 9"
         )
         self.assertEqual(
             run_interpreter("if 3 > 5 else 8 elif 7"),
-            "Invid Syntax: Expected 'then', File <basic>, line 1 column 9"
+            "Invalid Syntax: Expected 'then', File <basic>, line 1 column 9"
         )
 
 if __name__ == '__main__':

@@ -89,23 +89,23 @@ class TestEP8(unittest.TestCase):
     def test_parse10(self):
         self.assertEqual(
             run_parser("fun a, b) -> a + b"),
-            "Invid Syntax: Expected '(', File <basic>, line 1 column 5"
+            "Invalid Syntax: Expected '(', File <basic>, line 1 column 5"
         )
         self.assertEqual(
             run_parser("fun test(a, ) -> a + b"),
-            "Invid Syntax: Expected identifier, File <basic>, line 1 column 12"
+            "Invalid Syntax: Expected identifier, File <basic>, line 1 column 12"
         )
         self.assertEqual(
             run_parser("fun test(a, b -> a + b"),
-            "Invid Syntax: Expected ',' or ')', File <basic>, line 1 column 14"
+            "Invalid Syntax: Expected ',' or ')', File <basic>, line 1 column 14"
         )
         self.assertEqual(
             run_parser("fun test(a, b)  a + b"),
-            "Invid Syntax: Expected '->', File <basic>, line 1 column 16"
+            "Invalid Syntax: Expected newline or '->', File <basic>, line 1 column 16"
         )
         self.assertEqual(
             run_parser("fun test(a, b) -> "),
-            "Invid Syntax: Expected 'VAR', int, float, fun, for, while, identifier, '+', '-', '[' or '(', File <basic>, line 1 column 18"
+            "Invalid Syntax: Expected 'VAR', int, float, fun, for, while, identifier, '+', '-', '[' or '(', File <basic>, line 1 column 18"
         )
 
 if __name__ == '__main__':

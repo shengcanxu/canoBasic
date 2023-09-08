@@ -74,15 +74,15 @@ class TestEP10(unittest.TestCase):
     def test_parse9(self):
         self.assertEqual(
             run_parser("[1, 2  3, 4]"),
-            "Invid Syntax: Expected ',' or ']', File <basic>, line 1 column 7"
+            "Invalid Syntax: Expected ',' or ']', File <basic>, line 1 column 7"
         )
         self.assertEqual(
             run_parser("[1, 2, "),
-            "Invid Syntax: Expected 'VAR', int, float, fun, for, while, identifier, '+', '-', '[' or '(', File <basic>, line 1 column 7"
+            "Invalid Syntax: Expected 'VAR', int, float, fun, for, while, identifier, '+', '-', '[' or '(', File <basic>, line 1 column 7"
         )
         self.assertEqual(
             run_parser("[1, 2, 3, 4"),
-            "Invid Syntax: Expected ',' or ']', File <basic>, line 1 column 11"
+            "Invalid Syntax: Expected ',' or ']', File <basic>, line 1 column 11"
         )
 
 if __name__ == '__main__':
