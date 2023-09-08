@@ -1,4 +1,8 @@
-from interpreter import Number, BuiltInFunction, run_script, global_symbol_table
+from basicParser import Parser
+from interpreter import Interpreter
+from lexer import Lexer
+from util import global_symbol_table, run_script, Context
+from values import BuiltInFunction, Number
 
 global_symbol_table.set("null", Number.null)
 global_symbol_table.set("true", Number.true)
@@ -21,10 +25,28 @@ global_symbol_table.set("len", BuiltInFunction.len)
 global_symbol_table.set("run", BuiltInFunction.run)
 
 
+def run(text, filename):
+    lexer = Lexer(text, filename)
+    tokens, error = lexer.make_tokens()
+    if error: return None, error
+
+    # generate AST
+    parser = Parser(tokens)
+    ast = parser.parse()
+    if ast.error: return ast.node, ast.error
+
+    # interpreter
+    interpreter = Interpreter()
+    context = Context("<pragram>")
+    context.symbol_table = global_symbol_table
+    result = interpreter.visit(ast.node, context)
+
+    return result.value, result.error
+
 if __name__ == "__main__":
     while True:
         text = input('basic> ')
-        result, error = run_script(text, "<basic>")
+        result, error = run(text, "<basic>")
 
         if error:
             print(error.as_string())

@@ -1,7 +1,6 @@
 import unittest
 from test.share import run_tokenize, run_interpreter, run_parser
 
-
 class TestEP13(unittest.TestCase):
     def test_parse2(self):
         self.assertEqual(
