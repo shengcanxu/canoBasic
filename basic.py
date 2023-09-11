@@ -32,14 +32,14 @@ def run(text, filename):
 
     # generate AST
     parser = Parser(tokens)
-    ast = parser.parse()
-    if ast.error: return ast.node, ast.error
+    ast, error = parser.parse()
+    if error: return ast, error
 
     # interpreter
     interpreter = Interpreter()
     context = Context("<pragram>")
     context.symbol_table = global_symbol_table
-    result = interpreter.visit(ast.node, context)
+    result = interpreter.visit(ast, context)
 
     return result.value, result.error
 

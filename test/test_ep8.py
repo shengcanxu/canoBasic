@@ -105,7 +105,7 @@ class TestEP8(unittest.TestCase):
         )
         self.assertEqual(
             run_parser("fun test(a, b) -> "),
-            "Invalid Syntax: Expected 'VAR', int, float, fun, for, while, identifier, '+', '-', '[' or '(', File <basic>, line 1 column 18"
+            "Invalid Syntax: Invalid token, File <basic>, line 1 column 18"
         )
 
 if __name__ == '__main__':

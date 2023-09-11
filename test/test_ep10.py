@@ -78,7 +78,7 @@ class TestEP10(unittest.TestCase):
         )
         self.assertEqual(
             run_parser("[1, 2, "),
-            "Invalid Syntax: Expected 'VAR', int, float, fun, for, while, identifier, '+', '-', '[' or '(', File <basic>, line 1 column 7"
+            "Invalid Syntax: Invalid token, File <basic>, line 1 column 7"
         )
         self.assertEqual(
             run_parser("[1, 2, 3, 4"),
