@@ -1,24 +1,7 @@
 import unittest
-
-from basicParser import Parser
-from interpreter import Interpreter, Context
-from lexer import Lexer
 from test.share import run_tokenize, run_interpreter, run_parser
 
 class TestEP3(unittest.TestCase):
-    def run_interpreter(self, text, filename="<basic>"):
-        lexer = Lexer(text, filename)
-        tokens, error = lexer.make_tokens()
-        if error: return error.as_string()
-
-        parser = Parser(tokens)
-        ast = parser.parse()
-
-        interpreter = Interpreter()
-        context = Context("<Program>")
-        res = interpreter.visit(ast.node, context)
-        return res.error.as_string() if res.error else res.value.as_string()
-
     def test_parse1(self):
         self.assertEqual(
             run_interpreter("1 + 3"),

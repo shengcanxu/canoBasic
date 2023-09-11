@@ -69,8 +69,5 @@ class Token:
         return self.type == type_ and self.value == value
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
         if self.value: return f"{self.type}:{self.value}"
         return f"{self.type}"

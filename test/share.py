@@ -8,27 +8,26 @@ def run_tokenize(text, filename="<basic>"):
     tokens, error = lexer.make_tokens()
 
     if error:
-        return error.as_string()
+        return repr(error)
     else:
-        texts = [item.as_string() for item in tokens]
+        texts = [repr(item) for item in tokens]
         return '[' + ", ".join(texts) + ']'
 
 def run_parser(text, filename="<basic>"):
     lexer = Lexer(text, filename)
     tokens, error = lexer.make_tokens()
-    if error: return error.as_string()
+    if error: return repr(error)
 
     parser = Parser(tokens)
-    res, error = parser.parse()
+    ast, error = parser.parse()
 
     if error:
-        return error.as_string()
-    elif res is not None:
-        if len(res.element_nodes) == 1:
-            return res.element_nodes[0].as_string()
+        return repr(error)
+    elif ast is not None:
+        if len(ast.element_nodes) == 1:
+            return repr(ast.element_nodes[0])
         else:
-            return res.as_string()
-    # return res.error.as_string() if res.error else res.node.as_string()
+            return repr(ast)
 
 global_symbol_table = SymbolTable()
 global_symbol_table.set("null", Number.null)
@@ -54,11 +53,11 @@ global_symbol_table.set("run", BuiltInFunction.run)
 def run_interpreter(text, filename="<basic>"):
     lexer = Lexer(text, filename)
     tokens, error = lexer.make_tokens()
-    if error: return error.as_string()
+    if error: return repr(error)
 
     parser = Parser(tokens)
     ast,error = parser.parse()
-    if error: return error.as_string()
+    if error: return repr(error)
 
     interpreter = Interpreter()
     context = Context("<Program>")
@@ -66,9 +65,9 @@ def run_interpreter(text, filename="<basic>"):
     value = interpreter.visit(ast, context)
 
     if interpreter.error:
-        return interpreter.error.as_string()
+        return repr(interpreter.error)
     elif value:
         if len(value.elements) == 1:
-            return value.elements[0].as_string()
+            return repr(value.elements[0])
         else:
-            return value.as_string()
+            return repr(value)

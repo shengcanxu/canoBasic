@@ -8,9 +8,6 @@ class NumberNode:
         self.pos_end = self.tok.pos_end
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
         return f'{self.tok}'
 
 class StringNode:
@@ -20,9 +17,6 @@ class StringNode:
         self.pos_end = self.tok.pos_end
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
         return f'{self.tok}'
 
 class BinOpNode:
@@ -35,9 +29,6 @@ class BinOpNode:
         self.pos_end = self.right_node.pos_end
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
         return f'({self.left_node}, {self.op_tok}, {self.right_node})'
 
 class UnaryOpNode:
@@ -49,9 +40,6 @@ class UnaryOpNode:
         self.pos_end = self.node.pos_end
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
         return f"({self.op_tok}, {self.node})"
 
 class VarAccessNode:
@@ -61,9 +49,6 @@ class VarAccessNode:
         self.pos_end = self.var_name_tok.pos_end
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
         return f"{self.var_name_tok}"
 
 class VarAssignNode:
@@ -74,9 +59,6 @@ class VarAssignNode:
         self.pos_end = self.value_node.pos_end
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
         return f"({self.var_name_tok}, {CONSTANT.EQ}, {self.value_node})"
 
 class IfNode:
@@ -87,9 +69,6 @@ class IfNode:
         self.pos_end = (self.else_case or self.cases[len(self.cases) - 1])[0].pos_end
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
         text = ""
         for case in self.cases:
             text += f"(if {case[0]} then {case[1]})"
@@ -108,9 +87,6 @@ class WhileNode:
         self.pos_end = self.body_node.pos_end
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
         return f"(while {self.condition} then {self.body_node})"
 
 class ForNode:
@@ -125,9 +101,6 @@ class ForNode:
         self.pos_end = self.body_node.pos_end
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
         step_text = "" if self.step_node is None else f"step {self.step_node}"
         return f"(for {self.var_name_tok} = {self.start_node} to {self.end_node} {step_text} then {self.body_node})"
 
@@ -147,11 +120,8 @@ class FunDefNode:
         self.pos_end = self.body_node.pos_end
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
         name = self.var_name_tok if self.var_name_tok else "unknown"
-        args_text = '(' + ', '.join([arg.as_string() for arg in self.arg_name_toks]) + ')'
+        args_text = '(' + ', '.join([repr(arg) for arg in self.arg_name_toks]) + ')'
         return f"(fun {name}{args_text}, {self.body_node})"
 
 class CallNode:
@@ -165,11 +135,8 @@ class CallNode:
             self.pos_end = self.node_to_call.pos_end
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
         name = self.var_name_tok if self.var_name_tok else "unknown"
-        args_text = '(' + ', '.join([arg.as_string() for arg in self.arg_nodes]) + ')'
+        args_text = '(' + ', '.join([repr(arg) for arg in self.arg_nodes]) + ')'
         return f"(call {name}{args_text})"
 
 class ListNode:
@@ -179,10 +146,7 @@ class ListNode:
         self.pos_end = pos_end
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
-        return f"[{','.join([item.as_string() for item in self.element_nodes])}]"
+        return f"[{','.join([repr(item) for item in self.element_nodes])}]"
 
 class ReturnNode:
     def __init__(self, node_to_return, pos_start, pos_end):
@@ -191,9 +155,6 @@ class ReturnNode:
         self.pos_end = pos_end
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
         return "<return>"
 
 class ContinueNode:
@@ -202,9 +163,6 @@ class ContinueNode:
         self.pos_end = pos_end
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
         return "<continue>"
 
 class BreakNode:
@@ -213,7 +171,4 @@ class BreakNode:
         self.pos_end = pos_end
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
         return "<break>"

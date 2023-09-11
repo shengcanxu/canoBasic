@@ -49,7 +49,7 @@ if __name__ == "__main__":
         result, error = run(text, "<basic>")
 
         if error:
-            print(error.as_string())
+            print(repr(error))
         elif result:
             if len(result.elements) == 1:
                 print(result.elements[0])

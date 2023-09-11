@@ -5,7 +5,7 @@ class Error:
         self.error_name = error_name
         self.details = details
 
-    def as_string(self):
+    def __repr__(self):
         result = f'{self.error_name}: {self.details}'
         result += f', File {self.pos_start.filename}, line {self.pos_start.ln+1} column {self.pos_start.col}'
         return result
@@ -27,7 +27,7 @@ class RTError(Error):
         super().__init__(pos_start, pos_end, "Runtime Error", details)
         self.context = context
 
-    def as_string(self):
+    def __repr__(self):
         result = self.generate_traceback()
         result += f'{self.error_name}: {self.details}'
         result += f', File {self.pos_start.filename}, line {self.pos_start.ln+1} column {self.pos_start.col}'

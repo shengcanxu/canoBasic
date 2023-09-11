@@ -31,11 +31,8 @@ class Number(Value):
         super().__init__()
         self.value = value
 
-    def as_string(self):
-        return f'{self.value}'
-
     def __repr__(self):
-        return self.as_string()
+        return f'{self.value}'
 
     def is_true(self):
         return self.value != 0
@@ -137,11 +134,8 @@ class String(Value):
         super().__init__()
         self.value = value
 
-    def as_string(self):
-        return f'{self.value}'
-
     def __repr__(self):
-        return self.as_string()
+        return f'{self.value}'
 
     def is_true(self):
         return len(self.value) > 0
@@ -170,10 +164,7 @@ class List(Value):
         self.elements = elements
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
-        elem_strs = [elem.as_string() for elem in self.elements]
+        elem_strs = [repr(elem) for elem in self.elements]
         return f"[{','.join(elem_strs)}]"
 
     def added_to(self, other):
@@ -287,9 +278,6 @@ class Function(BaseFunction):
         return copy
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
         return f"<function {self.name}>"
 
 class BuiltInFunction(BaseFunction):
@@ -320,9 +308,6 @@ class BuiltInFunction(BaseFunction):
         return copy
 
     def __repr__(self):
-        return self.as_string()
-
-    def as_string(self):
         return f"<built-in function {self.name}>"
 
     def execute_print(self, exec_ctx):
@@ -473,7 +458,7 @@ class BuiltInFunction(BaseFunction):
         if error:
             return None, RTError(
                 self.pos_start, self.pos_end,
-                f"Failed to finish executing script '{filename}'\n" + error.as_string(),
+                f"Failed to finish executing script '{filename}'\n" + repr(error),
                 exec_ctx
             )
         return return_value, None

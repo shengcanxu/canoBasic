@@ -3,16 +3,6 @@ from lexer import Lexer
 from test.share import run_tokenize, run_interpreter, run_parser
 
 class TestEP1(unittest.TestCase):
-    def run_tokenize(self, text, filename="<basic>"):
-        lexer = Lexer(text, filename)
-        tokens, error = lexer.make_tokens()
-
-        if error:
-            return error.as_string()
-        else:
-            texts = [item.as_string() for item in tokens]
-            return '[' + ", ".join(texts) + ']'
-
     def test_parse_token1(self):
         self.assertEqual(
             run_tokenize("1 + 3"),
