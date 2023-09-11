@@ -63,12 +63,12 @@ def run_interpreter(text, filename="<basic>"):
     interpreter = Interpreter()
     context = Context("<Program>")
     context.symbol_table = global_symbol_table
-    res = interpreter.visit(ast, context)
+    value = interpreter.visit(ast, context)
 
-    if res.error:
-        return res.error.as_string()
-    elif res.value:
-        if len(res.value.elements) == 1:
-            return res.value.elements[0].as_string()
+    if interpreter.error:
+        return interpreter.error.as_string()
+    elif value:
+        if len(value.elements) == 1:
+            return value.elements[0].as_string()
         else:
-            return res.value.as_string()
+            return value.as_string()

@@ -1,7 +1,7 @@
 import math
 import os
 from error import RTError
-from util import RTResult, Context, SymbolTable, run_script, global_classes
+from util import Context, SymbolTable, run_script, global_classes
 
 
 class Value:
@@ -187,7 +187,7 @@ class List(Value):
             try:
                 new_list.elements.pop(other.value)
                 return new_list, None
-            except:
+            except Exception as e:
                 return None, RTError(
                     other.pos_start, other.pos_end,
                     "retrieve fails because index is not in the list",
@@ -208,7 +208,7 @@ class List(Value):
         if isinstance(other, Number):
             try:
                 return self.elements[other.value], None
-            except:
+            except Exception as e:
                 return None, RTError(other.pos_start, other.pos_end, "remove fails because index is not in the list", self.context)
         else:
             return None, Value.illegal_operation(self, other)
@@ -230,20 +230,19 @@ class BaseFunction(Value):
         return new_context
 
     def check_args(self, arg_names, args):
-        res = RTResult()
         if len(args) > len(arg_names):
-            return res.failure(RTError(
+            return False, RTError(
                 self.pos_start, self.pos_end,
                 f"{len(args) - len(arg_names)} too many args passed to {self.name}",
                 self.context
-            ))
+            )
         elif len(args) < len(arg_names):
-            return res.failure(RTError(
+            return False, RTError(
                 self.pos_start, self.pos_end,
                 f"{len(arg_names) - len(args)} too few args passed to {self.name}",
                 self.context
-            ))
-        return res.success(None)
+            )
+        return True, None
 
     def populate_args(self, arg_names, args, exec_ctx):
         for i in range(len(args)):
@@ -253,11 +252,10 @@ class BaseFunction(Value):
             exec_ctx.symbol_table.set(arg_name, arg_value)
 
     def check_and_populate_args(self, arg_names, args, exec_ctx):
-        res = RTResult()
-        res.register(self.check_args(arg_names, args))
-        if res.should_return(): return res
+        succ, error = self.check_args(arg_names, args)
+        if succ is False: return False, error
         self.populate_args(arg_names, args, exec_ctx)
-        return res.success(None)
+        return True, None
 
 class Function(BaseFunction):
     def __init__(self, name, arg_names, body_node, should_auto_return):
@@ -267,16 +265,20 @@ class Function(BaseFunction):
         self.should_auto_return = should_auto_return
 
     def execute(self, args):
-        res = RTResult()
         interpreter = global_classes["Interpreter"]()
         exec_ctx = self.generate_new_context()
-        res.register(self.check_and_populate_args(self.arg_names, args, exec_ctx) )
-        if res.should_return(): return res
+        succ, error = self.check_and_populate_args(self.arg_names, args, exec_ctx)
+        if succ is False: return None, error
 
-        value = res.register(interpreter.visit(self.body_node, exec_ctx))
-        if res.should_return() and res.func_return_value is None: return res
-        return_value = (value if self.should_auto_return else None) or res.func_return_value or Number.null
-        return res.success(return_value)
+        value = interpreter.visit(self.body_node, exec_ctx)
+        if interpreter.should_return() and interpreter.func_return_value is None: 
+            return RTError(
+                self.pos_start, self.pos_end,
+                f"No value returned from function {self.name}",
+                self.context
+            )
+        return_value = (value if self.should_auto_return else None) or interpreter.func_return_value or Number.null
+        return return_value
 
     def copy(self):
         copy = Function(self.name, self.arg_names, self.body_node, self.should_auto_return)
@@ -295,17 +297,18 @@ class BuiltInFunction(BaseFunction):
         super().__init__(name)
 
     def execute(self, args):
-        res = RTResult()
         exec_ctx = self.generate_new_context()
 
         method_name = f"execute_{self.name}"
         method = getattr(self, method_name, self.no_visit_method)
-        res.register(self.check_and_populate_args(method.arg_names, args, exec_ctx))
-        if res.should_return(): return res
+        succ, error = self.check_and_populate_args(method.arg_names, args, exec_ctx)
+        if succ is False: return error
 
-        return_value = res.register(method(exec_ctx))
-        if res.should_return(): return res
-        return res.success(return_value)
+        return_value, error = method(exec_ctx)
+        if error is not None: 
+            return error
+        else:
+            return return_value
 
     def no_visit_method(self):
         raise Exception(f"No execute_{self.name} method defined")
@@ -324,17 +327,17 @@ class BuiltInFunction(BaseFunction):
 
     def execute_print(self, exec_ctx):
         print(str(exec_ctx.symbol_table.get('value')))
-        return RTResult().success(Number.null)
+        return Number.null, None
     execute_print.arg_names = ["value"]
 
     def execute_print_ret(self, exec_ctx):
         strObj = String(str(exec_ctx.symbol_table.get('value')))
-        return RTResult().success(strObj)
+        return strObj, None
     execute_print_ret.arg_names = ["value"]
 
     def execute_input(self, exec_ctx):
         text = input()
-        return RTResult().success(String(text))
+        return String(text), None
     execute_input.arg_names = []
 
     def execute_input_int(self, exec_ctx):
@@ -345,138 +348,135 @@ class BuiltInFunction(BaseFunction):
                 break
             except ValueError:
                 print(f"'{text}' must be an integer, Try again!")
-        return RTResult().success(Number(number))
+        return Number(number), None
     execute_input_int.arg_names = []
 
     def execute_clear(self, exec_ctx):
         os.system("cls" if os.name == 'nt' else "clear")
-        return RTResult().success(Number.null)
+        return Number.null, None
     execute_clear.arg_names = []
 
     def execute_is_number(self, exec_ctx):
         is_number = isinstance(exec_ctx.symbol_table.get("value"), Number)
-        return RTResult().success(Number.true if is_number else Number.false)
+        return Number.true if is_number else Number.false, None
     execute_is_number.arg_names = ['value']
 
     def execute_is_string(self, exec_ctx):
         is_string = isinstance(exec_ctx.symbol_table.get("value"), String)
-        return RTResult().success(Number.true if is_string else Number.false)
+        return Number.true if is_string else Number.false, None
     execute_is_string.arg_names = ['value']
 
     def execute_is_list(self, exec_ctx):
         is_list = isinstance(exec_ctx.symbol_table.get("value"), List)
-        return RTResult().success(Number.true if is_list else Number.false)
+        return Number.true if is_list else Number.false, None
     execute_is_list.arg_names = ['value']
 
     def execute_is_function(self, exec_ctx):
         is_function = isinstance(exec_ctx.symbol_table.get("value"), BaseFunction)
-        return RTResult().success(Number.true if is_function else Number.false)
+        return Number.true if is_function else Number.false, None
     execute_is_function.arg_names = ['value']
 
     def execute_append(self, exec_ctx):
-        res = RTResult()
         list_ = exec_ctx.symbol_table.get("list")
         value = exec_ctx.symbol_table.get("value")
 
         if not isinstance(list_, List):
-            return res.failure(RTError(
+            return False, RTError(
                 self.pos_start, self.pos_end,
                 "First argument must be list",
                 exec_ctx
-            ))
+            )
         list_.elements.append(value)
-        return res.success(Number.null)
+        return Number.null, None
     execute_append.arg_names = ['list', 'value']
 
     def execute_pop(self, exec_ctx):
-        res = RTResult()
         list_ = exec_ctx.symbol_table.get("list")
         index = exec_ctx.symbol_table.get("index")
 
         if not isinstance(list_, List):
-            return res.failure(RTError(
+            return False, RTError(
                 self.pos_start, self.pos_end,
                 "First argument must be list",
                 exec_ctx
-            ))
+            )
         if not isinstance(index, Number):
-            return res.failure(RTError(
+            return False, RTError(
                 self.pos_start, self.pos_end,
                 "Second argument must be an integer",
                 exec_ctx
-            ))
+            )
 
         try:
             element = list_.elements.pop(index.value)
         except:
-            return res.failure(RTError(
+            return False, RTError(
                 self.pos_start, self.pos_end,
                 "Element at this index could not removed from list because index is out of range",
                 exec_ctx
-            ))
-        return res.success(element)
+            )
+        return element, None
     execute_pop.arg_names = ['list', 'index']
 
     def execute_extend(self, exec_ctx):
-        res = RTResult()
         listA = exec_ctx.symbol_table.get("listA")
         listB = exec_ctx.symbol_table.get("listB")
 
         if not isinstance(listA, List):
-            return res.failure(RTError(
+            return False, RTError(
                 self.pos_start, self.pos_end,
                 "First argument must be list",
                 exec_ctx
-            ))
+            )
         if not isinstance(listB, List):
-            return res.failure(RTError(
+            return False, RTError(
                 self.pos_start, self.pos_end,
                 "Second argument must be list",
                 exec_ctx
-            ))
+            )
         listA.elements.extend(listB.elements)
-        return res.success(Number.null)
+        return Number.null, None
     execute_extend.arg_names = ['listA', 'listB']
 
     def execute_len(self, exec_ctx):
         list_ = exec_ctx.symbol_table.get("list")
         if not isinstance(list_, List):
-            return RTResult().failure(RTError(
+            return None, RTError(
                 self.pos_start, self.pos_end,
                 "Augument must be list",
                 exec_ctx
-            ))
-        return RTResult().success(Number(len(list_.elements)))
+            )
+        return Number(len(list_.elements)), None
     execute_len.arg_names = ['list']
 
     def execute_run(self, exec_ctx):
         filename = exec_ctx.symbol_table.get("filename")
         if not isinstance(filename, String):
-            return RTResult().failure(RTError(
+            return None, RTError(
                 self.pos_start, self.pos_end,
                 "Argument must be string",
                 exec_ctx
-            ))
+            )
         filename = filename.value
 
         try:
             with open(filename, "r") as f:
                 script = f.read()
         except Exception as e:
-            return RTResult().failure(RTError(
+            return None, RTError(
                 self.pos_start, self.pos_end,
                 f"Failed to load script '{filename}'\n" + str(e),
                 exec_ctx
-            ))
+            )
 
         return_value, error = run_script(script, filename)
         if error:
-            return RTResult().failure(RTError(
+            return None, RTError(
                 self.pos_start, self.pos_end,
                 f"Failed to finish executing script '{filename}'\n" + error.as_string(),
                 exec_ctx
-            ))
-        return RTResult().success(return_value)
+            )
+        return return_value, None
     execute_run.arg_names = ['filename']
 
 Number.null = Number(0)
