@@ -10,13 +10,13 @@ class TestEP6(unittest.TestCase):
     def test_parse1(self):
         self.assertEqual(
             run_tokenize("if 5 > 3 then true"),
-            "[TT_KEYWORD:if, TT_INT:5, TT_GT, TT_INT:3, TT_KEYWORD:then, TT_IDENTIFIER:true, TT_EOF]"
+            "[if, 5, GT, 3, then, true, EOF]"
         )
 
     def test_parse2(self):
         self.assertEqual(
             run_parser("if 5 > 3 then true"),
-            "(if (TT_INT:5, TT_GT, TT_INT:3) then TT_IDENTIFIER:true)"
+            "(if (5,GT,3) then true)"
         )
 
     def test_parse3(self):

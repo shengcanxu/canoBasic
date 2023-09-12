@@ -25,31 +25,31 @@ KEYWORDS = {
 }
 
 class CONSTANT:
-    IDENTIFIER = "TT_IDENTIFIER"
-    KEYWORD = "TT_KEYWORD"
-    STRING = "TT_STRING"
-    INT = "TT_INT"
-    FLOAT = "TT_FLOAT"
-    PLUS = "TT_PLUS"
-    MINUS = "TT_MINUS"
-    MUL = "TT_MUL"
-    DIV = "TT_DIV"
-    POW = "TT_POW"
-    LPAREN = "TT_LPAREN"
-    RPAREN = "TT_RPAREN"
-    LSQUARE = "TT_LSQUARE"
-    RSQUARE = "TT_RSQUARE"
-    EQ = "TT_EQ"
-    EE = "TT_EE"
-    NE = "TT_NE"
-    LT = "TT_LT"
-    GT = "TT_GT"
-    LTE = "TT_LTE"
-    GTE = "TT_GTE"
-    COMMA = "TT_COMMA"
-    ARROW = "TT_ARROW"
-    NEWLINE = "TT_NEWLINE"
-    EOF = "TT_EOF"
+    IDENTIFIER = "ID"
+    KEYWORD = "KW"
+    STRING = "STR"
+    INT = "INT"
+    FLOAT = "FLT"
+    PLUS = "PLS"
+    MINUS = "MIS"
+    MUL = "MUL"
+    DIV = "DIV"
+    POW = "POW"
+    LPAREN = "LP"
+    RPAREN = "RP"
+    LSQUARE = "LS"
+    RSQUARE = "RS"
+    EQ = "EQ"
+    EE = "EE"
+    NE = "NE"
+    LT = "LT"
+    GT = "GT"
+    LTE = "LTE"
+    GTE = "GTE"
+    COMMA = "COM"
+    ARROW = "ARW"
+    NEWLINE = "NL"
+    EOF = "EOF"
 
 
 class Token:
@@ -69,5 +69,9 @@ class Token:
         return self.type == type_ and self.value == value
 
     def __repr__(self):
-        if self.value: return f"{self.type}:{self.value}"
+        if self.value: return f"{self.value}"
+        return f"{self.type}"
+
+    def save(self, str_list):
+        if self.value: return f"{self.value}"
         return f"{self.type}"

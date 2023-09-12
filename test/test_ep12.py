@@ -6,15 +6,15 @@ class TestEP12(unittest.TestCase):
     def test_parse1(self):
         self.assertEqual(
             run_tokenize("1+2; 3+4"),
-            "[TT_INT:1, TT_PLUS, TT_INT:2, TT_NEWLINE, TT_INT:3, TT_PLUS, TT_INT:4, TT_EOF]"
+            "[1, PLS, 2, NL, 3, PLS, 4, EOF]"
         )
         self.assertEqual(
             run_tokenize("1+2\n 3+4"),
-            "[TT_INT:1, TT_PLUS, TT_INT:2, TT_NEWLINE, TT_INT:3, TT_PLUS, TT_INT:4, TT_EOF]"
+            "[1, PLS, 2, NL, 3, PLS, 4, EOF]"
         )
         self.assertEqual(
             run_parser("1+2\n 3+4"),
-            "[(TT_INT:1, TT_PLUS, TT_INT:2),(TT_INT:3, TT_PLUS, TT_INT:4)]"
+            "[(1,PLS,2),(3,PLS,4)]"
         )
 
     def test_parse2(self):

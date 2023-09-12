@@ -6,11 +6,11 @@ class TestEP11(unittest.TestCase):
     def test_parse1(self):
         self.assertEqual(
             run_tokenize("print"),
-            "[TT_IDENTIFIER:print, TT_EOF]"
+            "[print, EOF]"
         )
         self.assertEqual(
             run_parser("print"),
-            "TT_IDENTIFIER:print"
+            "print"
         )
 
     def test_parse2(self):

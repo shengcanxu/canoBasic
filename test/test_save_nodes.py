@@ -1,11 +1,13 @@
 import unittest
-from test.share import run_tokenize, run_interpreter, run_parser
+from test.share import run_tokenize, run_interpreter, run_parser, run_save
 
+
+# save nodes to file and load from file to restore the ast tree
 class TestEP13(unittest.TestCase):
     def test_parse2(self):
         self.assertEqual(
-            run_tokenize("# hello\n## asdf##\n1+2"),
-            "[1, PLS, 2, EOF]"
+            run_save('var a = "1ab"'),
+            "[TT_INT:1, TT_PLUS, TT_INT:2, TT_EOF]"
         )
 
     def test_parse3(self):

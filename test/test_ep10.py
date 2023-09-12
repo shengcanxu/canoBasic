@@ -6,13 +6,13 @@ class TestEP10(unittest.TestCase):
     def test_parse1(self):
         self.assertEqual(
             run_tokenize("[1,2,3,4]"),
-            "[TT_LSQUARE, TT_INT:1, TT_COMMA, TT_INT:2, TT_COMMA, TT_INT:3, TT_COMMA, TT_INT:4, TT_RSQUARE, TT_EOF]"
+            "[LS, 1, COM, 2, COM, 3, COM, 4, RS, EOF]"
         )
 
     def test_parse2(self):
         self.assertEqual(
             run_parser("[1,2,3,4]"),
-            "[TT_INT:1,TT_INT:2,TT_INT:3,TT_INT:4]"
+            "[1,2,3,4]"
         )
 
     def test_parse3(self):

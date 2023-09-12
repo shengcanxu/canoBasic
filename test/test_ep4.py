@@ -10,13 +10,13 @@ class TestEP4(unittest.TestCase):
     def test_parse1(self):
         self.assertEqual(
             run_tokenize("var a = 3"),
-            "[TT_KEYWORD:var, TT_IDENTIFIER:a, TT_EQ, TT_INT:3, TT_EOF]"
+            "[var, a, EQ, 3, EOF]"
         )
 
     def test_parse2(self):
         self.assertEqual(
             run_parser("var a = 3"),
-            "(TT_IDENTIFIER:a, TT_EQ, TT_INT:3)"
+            "(a,3)"
         )
 
     def test_parse3(self):

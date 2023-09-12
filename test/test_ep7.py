@@ -10,21 +10,21 @@ class TestEP7(unittest.TestCase):
     def test_parse1(self):
         self.assertEqual(
             run_tokenize("while a>5 then a + 1"),
-            "[TT_KEYWORD:while, TT_IDENTIFIER:a, TT_GT, TT_INT:5, TT_KEYWORD:then, TT_IDENTIFIER:a, TT_PLUS, TT_INT:1, TT_EOF]"
+            "[while, a, GT, 5, then, a, PLS, 1, EOF]"
         )
         self.assertEqual(
             run_tokenize("for i = 1 to 10 step 2 then var a = a + 1"),
-            "[TT_KEYWORD:for, TT_IDENTIFIER:i, TT_EQ, TT_INT:1, TT_KEYWORD:to, TT_INT:10, TT_KEYWORD:step, TT_INT:2, TT_KEYWORD:then, TT_KEYWORD:var, TT_IDENTIFIER:a, TT_EQ, TT_IDENTIFIER:a, TT_PLUS, TT_INT:1, TT_EOF]"
+            "[for, i, EQ, 1, to, 10, step, 2, then, var, a, EQ, a, PLS, 1, EOF]"
         )
 
     def test_parse2(self):
         self.assertEqual(
             run_parser("while a>5 then var a = a + 1"),
-            "(while (TT_IDENTIFIER:a, TT_GT, TT_INT:5) then (TT_IDENTIFIER:a, TT_EQ, (TT_IDENTIFIER:a, TT_PLUS, TT_INT:1)))"
+            "(while (a,GT,5) then (a,(a,PLS,1)))"
         )
         self.assertEqual(
             run_parser("for i = 1 to 10 step 2 then var a = a + 1"),
-            "(for TT_IDENTIFIER:i = TT_INT:1 to TT_INT:10 step TT_INT:2 then (TT_IDENTIFIER:a, TT_EQ, (TT_IDENTIFIER:a, TT_PLUS, TT_INT:1)))"
+            "(for i = 1 to 10 step 2 then (a,(a,PLS,1)))"
         )
 
     def test_parse3(self):

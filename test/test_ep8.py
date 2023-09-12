@@ -6,13 +6,13 @@ class TestEP8(unittest.TestCase):
     def test_parse1(self):
         self.assertEqual(
             run_tokenize("fun test(a, b) -> a + b"),
-            "[TT_KEYWORD:fun, TT_IDENTIFIER:test, TT_LPAREN, TT_IDENTIFIER:a, TT_COMMA, TT_IDENTIFIER:b, TT_RPAREN, TT_ARROW, TT_IDENTIFIER:a, TT_PLUS, TT_IDENTIFIER:b, TT_EOF]"
+            "[fun, test, LP, a, COM, b, RP, ARW, a, PLS, b, EOF]"
         )
 
     def test_parse2(self):
         self.assertEqual(
             run_parser("fun test(a, b) -> a + b"),
-            "(fun TT_IDENTIFIER:test(TT_IDENTIFIER:a, TT_IDENTIFIER:b), (TT_IDENTIFIER:a, TT_PLUS, TT_IDENTIFIER:b))"
+            "(fun test(a, b), (a,PLS,b))"
         )
 
     def test_parse3(self):

@@ -6,17 +6,17 @@ class TestEP9(unittest.TestCase):
     def test_parse1(self):
         self.assertEqual(
             run_tokenize('"this is a test"'),
-            "[TT_STRING:this is a test, TT_EOF]"
+            "[this is a test, EOF]"
         )
         self.assertEqual(
             run_tokenize('"this is \t a test\n"'),
-            "[TT_STRING:this is 	 a test\n, TT_EOF]"
+            "[this is 	 a test\n, EOF]"
         )
 
     def test_parse2(self):
         self.assertEqual(
             run_parser('var a = "this is a test"'),
-            "(TT_IDENTIFIER:a, TT_EQ, TT_STRING:this is a test)"
+            "(a,this is a test)"
         )
 
     def test_parse3(self):

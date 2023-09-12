@@ -1,6 +1,12 @@
 from basicToken import CONSTANT
 
 
+def archieve_nodes(node):
+    str_list = []
+    text = node.save(str_list)
+    return text, str_list
+
+
 class NumberNode:
     def __init__(self, tok):
         self.tok = tok
@@ -10,6 +16,10 @@ class NumberNode:
     def __repr__(self):
         return f'{self.tok}'
 
+    def save(self, str_list):
+        num = self.tok.save(str_list)
+        return f"#{num}"
+
 class StringNode:
     def __init__(self, tok):
         self.tok = tok
@@ -18,6 +28,10 @@ class StringNode:
 
     def __repr__(self):
         return f'{self.tok}'
+
+    def save(self, str_list):
+        str_list.append(repr(self.tok))
+        return f"@{len(str_list) - 1}"
 
 class BinOpNode:
     def __init__(self, left_node, op_tok, right_node):
@@ -29,7 +43,13 @@ class BinOpNode:
         self.pos_end = self.right_node.pos_end
 
     def __repr__(self):
-        return f'({self.left_node}, {self.op_tok}, {self.right_node})'
+        return f'({self.left_node},{self.op_tok},{self.right_node})'
+
+    def save(self, str_list):
+        left = self.left_node.save(str_list)
+        op = self.op_tok.save(str_list)
+        right = self.right_node.save(str_list)
+        return f'(BO:{left},{op},{right})'
 
 class UnaryOpNode:
     def __init__(self, op_tok, node):
@@ -42,6 +62,11 @@ class UnaryOpNode:
     def __repr__(self):
         return f"({self.op_tok}, {self.node})"
 
+    def save(self, str_list):
+        op = self.op_tok.save(str_list)
+        node = self.node.save(str_list)
+        return f"(UO:{op},{node})"
+
 class VarAccessNode:
     def __init__(self, var_name_tok):
         self.var_name_tok = var_name_tok
@@ -51,6 +76,10 @@ class VarAccessNode:
     def __repr__(self):
         return f"{self.var_name_tok}"
 
+    def save(self, str_list):
+        name = self.var_name_tok.save(str_list)
+        return f"(VA:{name})"
+
 class VarAssignNode:
     def __init__(self, var_name_tok, value_node):
         self.var_name_tok = var_name_tok
@@ -59,7 +88,12 @@ class VarAssignNode:
         self.pos_end = self.value_node.pos_end
 
     def __repr__(self):
-        return f"({self.var_name_tok}, {CONSTANT.EQ}, {self.value_node})"
+        return f"({self.var_name_tok},{self.value_node})"
+
+    def save(self, str_list):
+        name = self.var_name_tok.save(str_list)
+        value = self.value_node.save(str_list)
+        return f"(VA:{name},{value})"
 
 class IfNode:
     def __init__(self, cases, else_case=None):
@@ -78,6 +112,11 @@ class IfNode:
             text = f"({text})"
         return text
 
+    def save(self, str_list):
+        cases = ','.join([case.save(str_list) for case in self.cases])
+        else_case = self.else_case.save(str_list)
+        return f"(IF:{len(self.cases)}{','+cases if len(self.cases)>0 else ''},{else_case})"
+
 class WhileNode:
     def __init__(self, condition, body_node, should_return_null):
         self.condition = condition
@@ -88,6 +127,11 @@ class WhileNode:
 
     def __repr__(self):
         return f"(while {self.condition} then {self.body_node})"
+
+    def save(self, str_list):
+        condition = self.condition.save(str_list)
+        body = self.body_node.save(str_list)
+        return f"(WN:{condition},{body})"
 
 class ForNode:
     def __init__(self, var_name_tok, start_node, end_node, step_node, body_node, should_return_null):
@@ -103,6 +147,15 @@ class ForNode:
     def __repr__(self):
         step_text = "" if self.step_node is None else f"step {self.step_node}"
         return f"(for {self.var_name_tok} = {self.start_node} to {self.end_node} {step_text} then {self.body_node})"
+
+    def save(self, str_list):
+        name = self.var_name_tok.save(str_list)
+        start = self.start_node.save(str_list)
+        end = self.end_node.save(str_list)
+        step = self.step_node.save(str_list)
+        body = self.body_node.save(str_list)
+        should_return_null = 'T' if self.should_return_null else 'F'
+        return f"(FN:{name},{start},{end},{step},{body},{should_return_null})"
 
 class FunDefNode:
     def __init__(self, var_name_tok, arg_name_toks, body_node, should_auto_return):
@@ -124,6 +177,12 @@ class FunDefNode:
         args_text = '(' + ', '.join([repr(arg) for arg in self.arg_name_toks]) + ')'
         return f"(fun {name}{args_text}, {self.body_node})"
 
+    def save(self, str_list):
+        name = self.var_name_tok.save(str_list)
+        args = ','.join([arg.save(str_list) for arg in self.arg_name_toks])
+        body = self.body_node.save(str_list)
+        return f"(FD:{name},{len(self.arg_name_toks)}{','+args if len(self.arg_name_toks)>0 else ''},{body})"
+
 class CallNode:
     def __init__(self, node_to_call, arg_nodes):
         self.node_to_call = node_to_call
@@ -135,9 +194,14 @@ class CallNode:
             self.pos_end = self.node_to_call.pos_end
 
     def __repr__(self):
-        name = self.var_name_tok if self.var_name_tok else "unknown"
+        name = self.node_to_call if self.node_to_call else "unknown"
         args_text = '(' + ', '.join([repr(arg) for arg in self.arg_nodes]) + ')'
         return f"(call {name}{args_text})"
+
+    def save(self, str_list):
+        node_to_call = self.node_to_call.save(str_list)
+        args = ','.join([arg.save(str_list) for arg in self.arg_nodes])
+        return f"(CN:{node_to_call},{len(self.arg_nodes)}{','+args if len(self.arg_nodes)>0 else ''})"
 
 class ListNode:
     def __init__(self, element_nodes, pos_start, pos_end):
@@ -148,6 +212,10 @@ class ListNode:
     def __repr__(self):
         return f"[{','.join([repr(item) for item in self.element_nodes])}]"
 
+    def save(self, str_list):
+        elements = [item.save(str_list) for item in self.element_nodes]
+        return f"(LN:{','.join(elements)})"
+
 class ReturnNode:
     def __init__(self, node_to_return, pos_start, pos_end):
         self.node_to_return = node_to_return
@@ -157,6 +225,9 @@ class ReturnNode:
     def __repr__(self):
         return "<return>"
 
+    def save(self, str_list):
+        return "(RT:)"
+
 class ContinueNode:
     def __init__(self, pos_start, pos_end):
         self.pos_start = pos_start
@@ -165,6 +236,9 @@ class ContinueNode:
     def __repr__(self):
         return "<continue>"
 
+    def save(self, str_list):
+        return "(CT:)"
+
 class BreakNode:
     def __init__(self, pos_start, pos_end):
         self.pos_start = pos_start
@@ -172,3 +246,6 @@ class BreakNode:
 
     def __repr__(self):
         return "<break>"
+
+    def save(self, str_list):
+        return "(BK:)"

@@ -5,13 +5,13 @@ class TestEP2(unittest.TestCase):
     def test_parse1(self):
         self.assertEqual(
             run_parser("1 + 3"),
-            "(TT_INT:1, TT_PLUS, TT_INT:3)"
+            "(1,PLS,3)"
         )
 
     def test_parse2(self):
         self.assertEqual(
             run_parser("1 +  2 + 3 + 4"),
-            "(((TT_INT:1, TT_PLUS, TT_INT:2), TT_PLUS, TT_INT:3), TT_PLUS, TT_INT:4)"
+            "(((1,PLS,2),PLS,3),PLS,4)"
         )
 
     def test_parse3(self):
@@ -23,31 +23,31 @@ class TestEP2(unittest.TestCase):
     def test_parse4(self):
         self.assertEqual(
             run_parser("-5"),
-            "(TT_MINUS, TT_INT:5)"
+            "(MIS, 5)"
         )
 
     def test_parse5(self):
         self.assertEqual(
             run_parser("--5"),
-            "(TT_MINUS, (TT_MINUS, TT_INT:5))"
+            "(MIS, (MIS, 5))"
         )
 
     def test_parse6(self):
         self.assertEqual(
             run_parser("1 + 2 *3 "),
-            "(TT_INT:1, TT_PLUS, (TT_INT:2, TT_MUL, TT_INT:3))"
+            "(1,PLS,(2,MUL,3))"
         )
 
     def test_parse7(self):
         self.assertEqual(
             run_parser("(2 - 3 ) * 5"),
-            "((TT_INT:2, TT_MINUS, TT_INT:3), TT_MUL, TT_INT:5)"
+            "((2,MIS,3),MUL,5)"
         )
 
     def test_parse8(self):
         self.assertEqual(
             run_parser("1 + (2+3) * 2"),
-            "(TT_INT:1, TT_PLUS, ((TT_INT:2, TT_PLUS, TT_INT:3), TT_MUL, TT_INT:2))"
+            "(1,PLS,((2,PLS,3),MUL,2))"
         )
 
     def test_parse9(self):

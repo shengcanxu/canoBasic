@@ -10,11 +10,11 @@ class TestEP5(unittest.TestCase):
     def test_parse1(self):
         self.assertEqual(
             run_tokenize("3 > 2 and 5 <= 6"),
-            "[TT_INT:3, TT_GT, TT_INT:2, TT_KEYWORD:and, TT_INT:5, TT_LTE, TT_INT:6, TT_EOF]"
+            "[3, GT, 2, and, 5, LTE, 6, EOF]"
         )
         self.assertEqual(
             run_parser("3 > 2 and 5 <= 6"),
-            "((TT_INT:3, TT_GT, TT_INT:2), TT_KEYWORD:and, (TT_INT:5, TT_LTE, TT_INT:6))"
+            "((3,GT,2),and,(5,LTE,6))"
         )
 
     def test_parse2(self):

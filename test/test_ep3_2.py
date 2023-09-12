@@ -10,7 +10,7 @@ class TestEP3_2(unittest.TestCase):
     def test_parse1(self):
         self.assertEqual(
             run_tokenize("2 ^ 3"),
-            "[TT_INT:2, TT_POW, TT_INT:3, TT_EOF]"
+            "[2, POW, 3, EOF]"
         )
 
     def test_parse2(self):
@@ -22,13 +22,13 @@ class TestEP3_2(unittest.TestCase):
     def test_parse3(self):
         self.assertEqual(
             run_parser("2 ^ 3"),
-            "(TT_INT:2, TT_POW, TT_INT:3)"
+            "(2,POW,3)"
         )
 
     def test_pars4(self):
         self.assertEqual(
             run_parser("2 ^ 3 ^ 2"),
-            "(TT_INT:2, TT_POW, (TT_INT:3, TT_POW, TT_INT:2))"
+            "(2,POW,(3,POW,2))"
         )
 
     def test_parse6(self):
