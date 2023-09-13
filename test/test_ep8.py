@@ -12,7 +12,7 @@ class TestEP8(unittest.TestCase):
     def test_parse2(self):
         self.assertEqual(
             run_parser("fun test(a, b) -> a + b"),
-            "(fun test(a, b), (a,PLS,b))"
+            "(fun test(a, b), ((VC:a),PLS,(VC:b)))"
         )
 
     def test_parse3(self):

@@ -45,6 +45,7 @@ def run_save(text, filepath):
 
 def run_restore(filepath):
     ast = restore_nodes(filepath)
+    print(repr(ast))
 
     interpreter = Interpreter()
     context = Context("<Program>")

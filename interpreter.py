@@ -34,6 +34,7 @@ class Interpreter:
         right = self.visit(node.right_node, context)
         if self.should_return(): return None
 
+        error = None
         if node.op_tok.type == CONSTANT.PLUS:
             result, error = left.added_to(right)
         elif node.op_tok.type == CONSTANT.MINUS:

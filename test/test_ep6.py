@@ -16,7 +16,7 @@ class TestEP6(unittest.TestCase):
     def test_parse2(self):
         self.assertEqual(
             run_parser("if 5 > 3 then true"),
-            "(if (5,GT,3) then true)"
+            "(if (5,GT,3) then (VC:true))"
         )
 
     def test_parse3(self):

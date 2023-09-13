@@ -71,13 +71,13 @@ class Token:
         return self.type == type_ and self.value == value
 
     def __repr__(self):
-        if self.value: return f"{self.value}"
+        if self.value is not None: return f"{self.value}"
         return f"{self.type}"
 
     def save(self, str_list):
         if self.type == CONSTANT.IDENTIFIER:
             return f"${self.value}"
-        elif self.value:
+        elif self.value is not None:
             return f"{self.value}"
         else:
             return f"{self.type}"
@@ -89,4 +89,4 @@ class Token:
         else:
             value = None
         tokens = tokens[1:]
-        return cls(type, value, Position(0,0,0)), tokens
+        return cls(type_, value, Position(0,0,0)), tokens

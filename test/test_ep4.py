@@ -16,7 +16,7 @@ class TestEP4(unittest.TestCase):
     def test_parse2(self):
         self.assertEqual(
             run_parser("var a = 3"),
-            "(a,3)"
+            "(VA:a,3)"
         )
 
     def test_parse3(self):

@@ -10,7 +10,7 @@ class TestEP11(unittest.TestCase):
         )
         self.assertEqual(
             run_parser("print"),
-            "print"
+            "(VC:print)"
         )
 
     def test_parse2(self):

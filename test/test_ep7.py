@@ -20,11 +20,11 @@ class TestEP7(unittest.TestCase):
     def test_parse2(self):
         self.assertEqual(
             run_parser("while a>5 then var a = a + 1"),
-            "(while (a,GT,5) then (a,(a,PLS,1)))"
+            "(while ((VC:a),GT,5) then (VA:a,((VC:a),PLS,1)))"
         )
         self.assertEqual(
             run_parser("for i = 1 to 10 step 2 then var a = a + 1"),
-            "(for i = 1 to 10 step 2 then (a,(a,PLS,1)))"
+            "(for i = 1 to 10 step 2 then (VA:a,((VC:a),PLS,1)))"
         )
 
     def test_parse3(self):

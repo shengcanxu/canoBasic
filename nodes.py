@@ -14,6 +14,7 @@ def archieve_nodes(node, filepath):
 
 def restore_nodes(filepath):
     tokens = read_nodes_str(filepath)
+    print(tokens)
 
     ast, _ = restore_node(tokens)
     return ast
@@ -138,7 +139,7 @@ class BinOpNode:
     def restore(cls, tokens):
         tokens = tokens[1:]
         left, tokens = restore_node(tokens)
-        op_tok = Token.restore(tokens, type_=tokens[0])
+        op_tok, tokens = Token.restore(tokens, type_=tokens[0])
         right, tokens = restore_node(tokens)
         return cls(left, op_tok, right), tokens
 
@@ -161,7 +162,7 @@ class UnaryOpNode:
     @classmethod
     def restore(cls, tokens):
         tokens = tokens[1:]
-        op_tok = Token.restore(tokens, type_=tokens[0])
+        op_tok, tokens = Token.restore(tokens, type_=tokens[0])
         node, tokens = restore_node(tokens)
         return cls(op_tok, node), tokens
 
@@ -181,7 +182,7 @@ class VarAccessNode:
     @classmethod
     def restore(cls, tokens):
         tokens = tokens[1:]
-        name = Token.restore(tokens)
+        name, tokens = Token.restore(tokens)
         return cls(name), tokens
 
 class VarAssignNode:
@@ -224,8 +225,19 @@ class IfNode:
         return text
 
     def save(self, str_list):
-        cases = ','.join([case.save(str_list) for case in self.cases])
-        else_case = self.else_case.save(str_list)
+        case_list = []
+        for condition, expr, should_return_null in self.cases:
+            case_list.append(condition.save(str_list))
+            case_list.append(expr.save(str_list))
+            case_list.append('True' if should_return_null else 'False')
+        cases = ','.join(case_list)
+
+        if self.else_case is not None:
+            expr, should_return_null = self.else_case
+            expr_str = expr.save(str_list)
+            else_case = f"{expr_str},{should_return_null}"
+        else:
+            else_case = "None,None"
         return f"IF,{len(self.cases)}{','+cases if len(self.cases)>0 else ''},{else_case}"
 
     @classmethod
@@ -236,9 +248,13 @@ class IfNode:
 
         cases = []
         for i in range(num):
-            case, tokens = restore_node(tokens)
-            cases.append(case)
-        else_case, tokens = restore_node(tokens)
+            condition, tokens = restore_node(tokens)
+            expr, tokens = restore_node(tokens)
+            should_return_null, tokens = restore_node(tokens)
+            cases.append((condition, expr, should_return_null))
+        expr, tokens = restore_node(tokens)
+        should_return_null, tokens = restore_node(tokens)
+        else_case = (expr, should_return_null) if expr is not None and should_return_null is not None else None
         return cls(cases, else_case), tokens
 
 class WhileNode:
@@ -255,7 +271,7 @@ class WhileNode:
     def save(self, str_list):
         condition = self.condition.save(str_list)
         body = self.body_node.save(str_list)
-        return f"WN,{condition},{body},{self.should_return_null})"
+        return f"WN,{condition},{body},{self.should_return_null}"
 
     @classmethod
     def restore(cls, tokens):
@@ -284,15 +300,15 @@ class ForNode:
         name = self.var_name_tok.save(str_list)
         start = self.start_node.save(str_list)
         end = self.end_node.save(str_list)
-        step = self.step_node.save(str_list)
+        step = self.step_node.save(str_list) if self.step_node else "None"
         body = self.body_node.save(str_list)
-        should_return_null = 'T' if self.should_return_null else 'F'
+        should_return_null = 'True' if self.should_return_null else 'False'
         return f"FN,{name},{start},{end},{step},{body},{should_return_null}"
 
     @classmethod
     def restore(cls, tokens):
         tokens = tokens[1:]
-        name, tokens = Token.restore(tokens, type_=tokens[0])
+        name, tokens = Token.restore(tokens)
         start, tokens = restore_node(tokens)
         end, tokens = restore_node(tokens)
         step, tokens = restore_node(tokens)
@@ -329,7 +345,8 @@ class FunDefNode:
     @classmethod
     def restore(cls, tokens):
         tokens = tokens[1:]
-        name, tokens = Token.restore(tokens, type_=tokens[0])
+        # name, tokens = Token.restore(tokens, type_=tokens[0])
+        name, tokens = restore_node(tokens)
         num = int(tokens[0])
         tokens = tokens[1:]
 
@@ -364,7 +381,7 @@ class CallNode:
     @classmethod
     def restore(cls, tokens):
         tokens = tokens[1:]
-        node_to_call, tokens = Token.restore(tokens, type_=tokens[0])
+        node_to_call, tokens = restore_node(tokens)
         num = int(tokens[0])
         tokens = tokens[1:]
 
