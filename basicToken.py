@@ -1,5 +1,7 @@
 import string
 
+from error import Position
+
 TT_DIGITS = "0123456789"
 TT_LETTERS = string.ascii_letters
 TT_LETTERS_DIGITS = TT_LETTERS + TT_DIGITS
@@ -73,5 +75,18 @@ class Token:
         return f"{self.type}"
 
     def save(self, str_list):
-        if self.value: return f"{self.value}"
-        return f"{self.type}"
+        if self.type == CONSTANT.IDENTIFIER:
+            return f"${self.value}"
+        elif self.value:
+            return f"{self.value}"
+        else:
+            return f"{self.type}"
+
+    @classmethod
+    def restore(cls, tokens, type_=CONSTANT.IDENTIFIER):
+        if type_ == CONSTANT.IDENTIFIER:
+            value = tokens[0][1:]
+        else:
+            value = None
+        tokens = tokens[1:]
+        return cls(type, value, Position(0,0,0)), tokens

@@ -1,7 +1,7 @@
 from basicParser import Parser
 from interpreter import Interpreter, Context, SymbolTable, Number, BuiltInFunction
 from lexer import Lexer
-from nodes import archieve_nodes
+from nodes import archieve_nodes, restore_nodes
 
 
 def run_tokenize(text, filename="<basic>"):
@@ -30,8 +30,8 @@ def run_parser(text, filename="<basic>"):
         else:
             return repr(ast)
 
-def run_save(text, filename="<basic>"):
-    lexer = Lexer(text, filename)
+def run_save(text, filepath):
+    lexer = Lexer(text, "<basic>")
     tokens, error = lexer.make_tokens()
     if error: return repr(error)
 
@@ -40,7 +40,24 @@ def run_save(text, filename="<basic>"):
     if error:
         return repr(error)
     else:
-        return archieve_nodes(ast)
+        text, _ = archieve_nodes(ast, filepath)
+        return text
+
+def run_restore(filepath):
+    ast = restore_nodes(filepath)
+
+    interpreter = Interpreter()
+    context = Context("<Program>")
+    context.symbol_table = global_symbol_table
+    value = interpreter.visit(ast, context)
+
+    if interpreter.error:
+        return repr(interpreter.error)
+    elif value:
+        if len(value.elements) == 1:
+            return repr(value.elements[0])
+        else:
+            return repr(value)
 
 global_symbol_table = SymbolTable()
 global_symbol_table.set("null", Number.null)
